@@ -11,6 +11,7 @@ impl Iterator for MBruteRangeIter {
 
 impl MBruteRange {
     pub fn iter(&self) -> MBruteRangeIter {
+        //TODO: Optimize iterator to not use clone
         let iter = self.ranges.clone().into_iter().flatten();
         MBruteRangeIter { iter }
     }

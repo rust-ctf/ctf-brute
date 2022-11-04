@@ -9,6 +9,7 @@ pub struct BruteRange {
     pub(crate) end: char,
 }
 
+#[derive(Clone, Debug)]
 pub struct BruteRangeIter {
     pub(crate) end: u32,
     pub(crate) index: u32,

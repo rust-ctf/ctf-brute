@@ -12,6 +12,7 @@ pub struct MBruteRange {
     pub(crate) ranges: NonEmpty<BruteRange>,
 }
 
+#[derive(Clone, Debug)]
 pub struct MBruteRangeIter {
     pub(crate) iter:
         Flatten<std::iter::Chain<std::iter::Once<BruteRange>, std::vec::IntoIter<BruteRange>>>,
