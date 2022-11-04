@@ -1,7 +1,7 @@
 use std::cmp::max;
 
 use itertools::Itertools;
-use nonempty::{nonempty, NonEmpty};
+use nonempty::NonEmpty;
 
 use crate::ops::BruteRange;
 
@@ -35,6 +35,7 @@ impl MBruteRange {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nonempty::nonempty;
 
     #[test]
     fn test_merge_ranges_single() {

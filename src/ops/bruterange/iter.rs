@@ -16,7 +16,7 @@ impl Iterator for BruteRangeIter {
             self.index += 0xE000 - 0xD800;
         }
 
-        return Some(chr);
+        Some(chr)
     }
 }
 

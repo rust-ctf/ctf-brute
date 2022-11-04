@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 mod constant;
-pub(crate) mod iter;
+pub mod iter;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
 pub struct BruteRange {
@@ -15,22 +15,22 @@ pub struct BruteRangeIter {
 }
 
 impl BruteRange {
-    pub const fn new(start: char, end: char) -> BruteRange {
+    pub const fn new(start: char, end: char) -> Self {
         let (mut start, mut end) = (start, end);
         if start > end {
             (start, end) = (end, start);
         }
-        BruteRange { start, end }
+        Self { start, end }
     }
 
-    pub const fn from_range(range: RangeInclusive<char>) -> BruteRange {
-        BruteRange::new(*range.start(), *range.end())
+    pub const fn from_range(range: RangeInclusive<char>) -> Self {
+        Self::new(*range.start(), *range.end())
     }
 
-    pub fn from_range_u32(range: RangeInclusive<u32>) -> Option<BruteRange> {
+    pub fn from_range_u32(range: RangeInclusive<u32>) -> Option<Self> {
         let start = char::from_u32(*range.start())?;
         let end = char::from_u32(*range.end())?;
-        Some(BruteRange::new(start, end))
+        Some(Self::new(start, end))
     }
 
     pub fn len(&self) -> usize {
@@ -38,7 +38,7 @@ impl BruteRange {
         let end = self.end as u32;
         let mut count = end - start;
         if start < 0xD800 && 0xE000 < end {
-            count -= 0x800
+            count -= 0x800;
         }
         count += 1;
         count as usize
@@ -47,6 +47,6 @@ impl BruteRange {
 
 impl From<RangeInclusive<char>> for BruteRange {
     fn from(range: RangeInclusive<char>) -> Self {
-        BruteRange::from_range(range)
+        Self::from_range(range)
     }
 }

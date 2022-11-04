@@ -1,63 +1,53 @@
 use super::BruteRange;
 
 impl BruteRange {
-    pub const RANGE_NUMBERS: BruteRange = BruteRange::from_range('0'..='9');
-    pub const RANGE_LETTERS_UPPERCASE: BruteRange = BruteRange::from_range('A'..='Z');
-    pub const RANGE_LETTERS_LOWERCASE: BruteRange = BruteRange::from_range('a'..='z');
+    pub const RANGE_NUMBERS: Self = Self::from_range('0'..='9');
+    pub const RANGE_LETTERS_UPPERCASE: Self = Self::from_range('A'..='Z');
+    pub const RANGE_LETTERS_LOWERCASE: Self = Self::from_range('a'..='z');
 
-    pub const RANGE_ASCII: BruteRange = BruteRange::from_range('\u{0}'..='\u{FF}');
-    pub const RANGE_UNICODE: BruteRange = BruteRange::from_range('\u{0}'..='\u{10FFFF}');
+    pub const RANGE_ASCII: Self = Self::from_range('\u{0}'..='\u{FF}');
+    pub const RANGE_UNICODE: Self = Self::from_range('\u{0}'..='\u{10FFFF}');
 
-    const RANGE_HEX_LETTERS_UPPERCASE: BruteRange = BruteRange::from_range('A'..='F');
-    const RANGE_HEX_LETTERS_LOWERCASE: BruteRange = BruteRange::from_range('a'..='f');
+    const RANGE_HEX_LETTERS_UPPERCASE: Self = Self::from_range('A'..='F');
+    const RANGE_HEX_LETTERS_LOWERCASE: Self = Self::from_range('a'..='f');
 
-    pub const RANGES_NUMBERS: [BruteRange; 1] = [BruteRange::RANGE_NUMBERS];
+    pub const RANGES_NUMBERS: [Self; 1] = [Self::RANGE_NUMBERS];
 
-    pub const RANGES_ASCII: [BruteRange; 1] = [BruteRange::RANGE_ASCII];
-    pub const RANGES_UNICODE: [BruteRange; 1] = [BruteRange::RANGE_UNICODE];
+    pub const RANGES_ASCII: [Self; 1] = [Self::RANGE_ASCII];
+    pub const RANGES_UNICODE: [Self; 1] = [Self::RANGE_UNICODE];
 
-    pub const RANGES_PUNCT: [BruteRange; 4] = [
-        BruteRange::from_range('!'..='/'),
-        BruteRange::from_range(':'..='@'),
-        BruteRange::from_range('['..='`'),
-        BruteRange::from_range('{'..='~'),
+    pub const RANGES_PUNCT: [Self; 4] = [
+        Self::from_range('!'..='/'),
+        Self::from_range(':'..='@'),
+        Self::from_range('['..='`'),
+        Self::from_range('{'..='~'),
     ];
 
-    pub const RANGES_LETTERS_UPPERCASE: [BruteRange; 1] = [BruteRange::RANGE_LETTERS_UPPERCASE];
-    pub const RANGES_LETTERS_LOWERCASE: [BruteRange; 1] = [BruteRange::RANGE_LETTERS_LOWERCASE];
-    pub const RANGES_LETTERS: [BruteRange; 2] = [
-        BruteRange::RANGE_LETTERS_UPPERCASE,
-        BruteRange::RANGE_LETTERS_LOWERCASE,
+    pub const RANGES_LETTERS_UPPERCASE: [Self; 1] = [Self::RANGE_LETTERS_UPPERCASE];
+    pub const RANGES_LETTERS_LOWERCASE: [Self; 1] = [Self::RANGE_LETTERS_LOWERCASE];
+    pub const RANGES_LETTERS: [Self; 2] =
+        [Self::RANGE_LETTERS_UPPERCASE, Self::RANGE_LETTERS_LOWERCASE];
+
+    pub const RANGES_HEX_LOWERCASE: [Self; 2] =
+        [Self::RANGE_NUMBERS, Self::RANGE_HEX_LETTERS_LOWERCASE];
+    pub const RANGES_HEX_UPPERCASE: [Self; 2] =
+        [Self::RANGE_NUMBERS, Self::RANGE_HEX_LETTERS_UPPERCASE];
+    pub const RANGES_HEX: [Self; 3] = [
+        Self::RANGE_NUMBERS,
+        Self::RANGE_HEX_LETTERS_UPPERCASE,
+        Self::RANGE_HEX_LETTERS_LOWERCASE,
     ];
 
-    pub const RANGES_HEX_LOWERCASE: [BruteRange; 2] = [
-        BruteRange::RANGE_NUMBERS,
-        BruteRange::RANGE_HEX_LETTERS_LOWERCASE,
-    ];
-    pub const RANGES_HEX_UPPERCASE: [BruteRange; 2] = [
-        BruteRange::RANGE_NUMBERS,
-        BruteRange::RANGE_HEX_LETTERS_UPPERCASE,
-    ];
-    pub const RANGES_HEX: [BruteRange; 3] = [
-        BruteRange::RANGE_NUMBERS,
-        BruteRange::RANGE_HEX_LETTERS_UPPERCASE,
-        BruteRange::RANGE_HEX_LETTERS_LOWERCASE,
-    ];
+    pub const RANGES_ALPHANUM_LOWERCASE: [Self; 2] =
+        [Self::RANGE_NUMBERS, Self::RANGE_LETTERS_LOWERCASE];
 
-    pub const RANGES_ALPHANUM_LOWERCASE: [BruteRange; 2] = [
-        BruteRange::RANGE_NUMBERS,
-        BruteRange::RANGE_LETTERS_LOWERCASE,
-    ];
+    pub const RANGES_ALPHANUM_UPPERCASE: [Self; 2] =
+        [Self::RANGE_NUMBERS, Self::RANGE_LETTERS_UPPERCASE];
 
-    pub const RANGES_ALPHANUM_UPPERCASE: [BruteRange; 2] = [
-        BruteRange::RANGE_NUMBERS,
-        BruteRange::RANGE_LETTERS_UPPERCASE,
-    ];
-
-    pub const RANGES_ALPHANUM: [BruteRange; 3] = [
-        BruteRange::RANGE_NUMBERS,
-        BruteRange::RANGE_LETTERS_UPPERCASE,
-        BruteRange::RANGE_LETTERS_LOWERCASE,
+    pub const RANGES_ALPHANUM: [Self; 3] = [
+        Self::RANGE_NUMBERS,
+        Self::RANGE_LETTERS_UPPERCASE,
+        Self::RANGE_LETTERS_LOWERCASE,
     ];
 }
 

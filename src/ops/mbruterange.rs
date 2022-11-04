@@ -1,12 +1,11 @@
-use itertools::Itertools;
 use nonempty::{nonempty, NonEmpty};
-use std::{char::TryFromCharError, cmp::max, iter::Flatten, ops::RangeInclusive};
+use std::iter::Flatten;
 
 mod constant;
 mod iter;
 mod merge;
 
-use super::{bruterange::BruteRangeIter, BruteRange};
+use super::BruteRange;
 
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 pub struct MBruteRange {
@@ -19,24 +18,24 @@ pub struct MBruteRangeIter {
 }
 
 impl MBruteRange {
-    pub fn from_range(range: BruteRange) -> Self {
+    pub const fn from_range(range: BruteRange) -> Self {
         Self {
             ranges: nonempty![range],
         }
     }
 
     pub fn from_ranges(ranges: NonEmpty<BruteRange>) -> Self {
-        let ranges = MBruteRange::merge_and_order_ranges(ranges);
+        let ranges = Self::merge_and_order_ranges(ranges);
         Self { ranges }
     }
 
     pub fn len(&self) -> usize {
-        self.ranges.iter().map(|x| x.len()).sum()
+        self.ranges.iter().map(BruteRange::len).sum()
     }
 }
 
 impl From<BruteRange> for MBruteRange {
     fn from(range: BruteRange) -> Self {
-        MBruteRange::from_range(range)
+        Self::from_range(range)
     }
 }

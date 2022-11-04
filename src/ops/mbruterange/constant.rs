@@ -4,69 +4,69 @@ use super::BruteRange;
 use super::MBruteRange;
 
 impl MBruteRange {
-    pub fn numbers() -> MBruteRange {
+    pub fn numbers() -> Self {
         let pattern = BruteRange::RANGES_NUMBERS;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn punct() -> MBruteRange {
+    pub fn punct() -> Self {
         let pattern = BruteRange::RANGES_PUNCT;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn letters_upper() -> MBruteRange {
+    pub fn letters_upper() -> Self {
         let pattern = BruteRange::RANGES_LETTERS_UPPERCASE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn letters_lower() -> MBruteRange {
+    pub fn letters_lower() -> Self {
         let pattern = BruteRange::RANGES_LETTERS_LOWERCASE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn letters() -> MBruteRange {
+    pub fn letters() -> Self {
         let pattern = BruteRange::RANGES_LETTERS;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn hex_lower() -> MBruteRange {
+    pub fn hex_lower() -> Self {
         let pattern = BruteRange::RANGES_HEX_LOWERCASE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn hex_upper() -> MBruteRange {
+    pub fn hex_upper() -> Self {
         let pattern = BruteRange::RANGES_HEX_UPPERCASE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn hex() -> MBruteRange {
+    pub fn hex() -> Self {
         let pattern = BruteRange::RANGES_HEX;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn alphanum_lower() -> MBruteRange {
+    pub fn alphanum_lower() -> Self {
         let pattern = BruteRange::RANGES_ALPHANUM_LOWERCASE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn alphanum_upper() -> MBruteRange {
+    pub fn alphanum_upper() -> Self {
         let pattern = BruteRange::RANGES_ALPHANUM_UPPERCASE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn alphanum() -> MBruteRange {
+    pub fn alphanum() -> Self {
         let pattern = BruteRange::RANGES_ALPHANUM;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn ascii() -> MBruteRange {
+    pub fn ascii() -> Self {
         let pattern = BruteRange::RANGES_ASCII;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 
-    pub fn unicode() -> MBruteRange {
+    pub fn unicode() -> Self {
         let pattern = BruteRange::RANGES_UNICODE;
-        MBruteRange::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
+        Self::from_ranges(NonEmpty::from_slice(&pattern).unwrap())
     }
 }
 
