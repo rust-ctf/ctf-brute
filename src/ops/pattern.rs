@@ -5,6 +5,7 @@ use std::{
 };
 
 mod iter;
+mod macros;
 
 use super::{bruterange::BruteRangeIter, mbruterange::MBruteRangeIter, BruteRange, MBruteRange};
 

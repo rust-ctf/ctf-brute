@@ -23,6 +23,16 @@ impl BruteRange {
         Self::from_range('{'..='~'),
     ];
 
+    pub const RANGES_BRUTE: [Self; 7] = [
+        Self::from_range('!'..='/'),
+        Self::RANGE_NUMBERS,
+        Self::from_range(':'..='@'),
+        Self::RANGE_LETTERS_UPPERCASE,
+        Self::from_range('['..='`'),
+        Self::RANGE_LETTERS_LOWERCASE,
+        Self::from_range('{'..='~'),
+    ];
+
     pub const RANGES_LETTERS_UPPERCASE: [Self; 1] = [Self::RANGE_LETTERS_UPPERCASE];
     pub const RANGES_LETTERS_LOWERCASE: [Self; 1] = [Self::RANGE_LETTERS_LOWERCASE];
     pub const RANGES_LETTERS: [Self; 2] =
@@ -162,6 +172,22 @@ mod tests {
                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
                 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
                 'w', 'x', 'y', 'z'
+            ]
+        );
+    }
+
+    #[test]
+    fn test_iter_RANGES_BRUTE() {
+        let result: Vec<char> = BruteRange::RANGES_BRUTE.into_iter().flatten().collect();
+        assert_eq!(
+            result,
+            vec![
+                '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', '0',
+                '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@',
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_', '`',
+                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+                'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'
             ]
         );
     }

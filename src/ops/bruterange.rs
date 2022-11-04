@@ -24,6 +24,10 @@ impl BruteRange {
         Self { start, end }
     }
 
+    pub const fn from_char(chr: char) -> Self {
+        Self::new(chr, chr)
+    }
+
     pub const fn from_range(range: RangeInclusive<char>) -> Self {
         Self::new(*range.start(), *range.end())
     }
