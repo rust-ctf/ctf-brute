@@ -10,4 +10,5 @@ license = "MIT"
 
 [dependencies]
 itertools = "0.10.5"
+logos = "0.12.1"
 nonempty = "0.8.0"
