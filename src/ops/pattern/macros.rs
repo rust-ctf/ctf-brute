@@ -52,8 +52,7 @@ fn parse_group(queue: &mut VecDeque<char>, end: Option<char>) -> Option<Pattern>
             ('(', _) => return None,
             (_, Some('-')) => {
                 let r = queue.pop_front()?;
-                if let '[' | ']' | '{' | '}' | '(' | ')' | '-' | '\\' = r
-                {
+                if let '[' | ']' | '{' | '}' | '(' | ')' | '-' | '\\' = r {
                     return None;
                 }
                 Pattern::Range(BruteRange::new(chr, r))
@@ -69,8 +68,7 @@ fn parse_group(queue: &mut VecDeque<char>, end: Option<char>) -> Option<Pattern>
                 if end.is_some() && chr == end.unwrap() {
                     break;
                 }
-                if let ']' | '}' | ')' = chr
-                {
+                if let ']' | '}' | ')' = chr {
                     return None;
                 }
                 Pattern::Range(BruteRange::from_char(chr))
@@ -196,7 +194,7 @@ mod tests {
         let pattern = parse_pattern(r"(ab){0,3}").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["","ab", "abab", "ababab"]);
+        assert_eq!(result, vec!["", "ab", "abab", "ababab"]);
     }
 
     #[test]
@@ -220,7 +218,10 @@ mod tests {
         let pattern = parse_pattern(r"(cb{1,2}){1,2}").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["cb", "cbb", "cbcb", "cbcbb", "cbbcb", "cbbcbb"]);
+        assert_eq!(
+            result,
+            vec!["cb", "cbb", "cbcb", "cbcbb", "cbbcb", "cbbcbb"]
+        );
     }
 
     #[test]
@@ -241,7 +242,7 @@ mod tests {
         let pattern = parse_pattern(r"9-3").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["3", "4", "5", "6","7", "8", "9"]);
+        assert_eq!(result, vec!["3", "4", "5", "6", "7", "8", "9"]);
     }
 
     #[test]
@@ -265,16 +266,21 @@ mod tests {
         let pattern = parse_pattern(r"a-cA-C").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["aA","aB","aC", "bA","bB","bC", "cA", "cB", "cC"]);
+        assert_eq!(
+            result,
+            vec!["aA", "aB", "aC", "bA", "bB", "bC", "cA", "cB", "cC"]
+        );
     }
 
-    
     #[test]
     fn test_pattern_ranges_group1() {
         let pattern = parse_pattern(r"(a-c)(A-C)").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["aA","aB","aC", "bA","bB","bC", "cA", "cB", "cC"]);
+        assert_eq!(
+            result,
+            vec!["aA", "aB", "aC", "bA", "bB", "bC", "cA", "cB", "cC"]
+        );
     }
 
     #[test]
@@ -282,7 +288,10 @@ mod tests {
         let pattern = parse_pattern(r"X(a-c)X(A-C)X").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["XaXAX","XaXBX","XaXCX", "XbXAX","XbXBX","XbXCX", "XcXAX", "XcXBX", "XcXCX"]);
+        assert_eq!(
+            result,
+            vec!["XaXAX", "XaXBX", "XaXCX", "XbXAX", "XbXBX", "XbXCX", "XcXAX", "XcXBX", "XcXCX"]
+        );
     }
 
     #[test]
@@ -340,7 +349,7 @@ mod tests {
         let pattern = parse_pattern(r"[abc]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["a","b","c"]);
+        assert_eq!(result, vec!["a", "b", "c"]);
     }
 
     #[test]
@@ -348,7 +357,7 @@ mod tests {
         let pattern = parse_pattern(r"[cAb]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","b","c"]);
+        assert_eq!(result, vec!["A", "b", "c"]);
     }
 
     #[test]
@@ -356,7 +365,7 @@ mod tests {
         let pattern = parse_pattern(r"[A-C]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","B","C"]);
+        assert_eq!(result, vec!["A", "B", "C"]);
     }
 
     #[test]
@@ -364,7 +373,7 @@ mod tests {
         let pattern = parse_pattern(r"[A-Cb-c]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","B","C","b","c"]);
+        assert_eq!(result, vec!["A", "B", "C", "b", "c"]);
     }
 
     #[test]
@@ -372,7 +381,7 @@ mod tests {
         let pattern = parse_pattern(r"[A-CB-D]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","B","C","D"]);
+        assert_eq!(result, vec!["A", "B", "C", "D"]);
     }
 
     #[test]
@@ -380,7 +389,7 @@ mod tests {
         let pattern = parse_pattern(r"[C-AD-B]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","B","C","D"]);
+        assert_eq!(result, vec!["A", "B", "C", "D"]);
     }
 
     #[test]
@@ -388,7 +397,7 @@ mod tests {
         let pattern = parse_pattern(r"[AB-CDE-GH]").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","B","C","D","E","F","G","H"]);
+        assert_eq!(result, vec!["A", "B", "C", "D", "E", "F", "G", "H"]);
     }
 
     #[test]
@@ -414,7 +423,7 @@ mod tests {
         let pattern = parse_pattern(r"([Ab-cDe-gH])").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["A","D","H","b","c","e","f","g"]);
+        assert_eq!(result, vec!["A", "D", "H", "b", "c", "e", "f", "g"]);
     }
 
     #[test]
@@ -422,7 +431,7 @@ mod tests {
         let pattern = parse_pattern(r"([ab]){1,2}").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["a","b","aa","ab","ba","bb"]);
+        assert_eq!(result, vec!["a", "b", "aa", "ab", "ba", "bb"]);
     }
 
     #[test]
@@ -430,10 +439,8 @@ mod tests {
         let pattern = parse_pattern(r"[0-1]{0,2}").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
-        assert_eq!(result, vec!["","0","1","00","01","10","11"]);
+        assert_eq!(result, vec!["", "0", "1", "00", "01", "10", "11"]);
     }
-
-
 
     #[test]
     fn test_escape_unsupported() {
@@ -645,7 +652,7 @@ mod tests {
             let pattern = parse_pattern(format!("\\x{:x}", escape as u32).as_str()).unwrap();
             let result: Vec<String> = pattern.iter().collect();
             assert_eq!(pattern.len().unwrap(), result.len() as u128);
-            assert_eq!(result,vec![escape.to_string()]);
+            assert_eq!(result, vec![escape.to_string()]);
         }
     }
 
@@ -675,15 +682,15 @@ mod tests {
             let pattern = parse_pattern(format!("\\u{:x}", escape as u32).as_str()).unwrap();
             let result: Vec<String> = pattern.iter().collect();
             assert_eq!(pattern.len().unwrap(), result.len() as u128);
-            assert_eq!(result,vec![escape.to_string()]);
+            assert_eq!(result, vec![escape.to_string()]);
         }
     }
 
     #[test]
     fn test_escape_invalid() {
         let allowed_chars = HashSet::from([
-            '\\', '[', ']', '{', '}', '(', ')', '-', 'w', 'W', 'd', 'u','U', 'a', 'l', 'h', 'H', 'x', 'X',
-            'p', 'n', 'N', 'm', 'b',
+            '\\', '[', ']', '{', '}', '(', ')', '-', 'w', 'W', 'd', 'u', 'U', 'a', 'l', 'h', 'H',
+            'x', 'X', 'p', 'n', 'N', 'm', 'b',
         ]);
 
         let not_allowed_escapes: Vec<char> = (0..=0x10ffff)
