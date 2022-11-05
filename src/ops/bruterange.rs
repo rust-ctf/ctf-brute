@@ -38,7 +38,7 @@ impl BruteRange {
         Some(Self::new(start, end))
     }
 
-    pub fn len(&self) -> usize {
+    pub const fn len(self) -> usize {
         let start = self.start as u32;
         let end = self.end as u32;
         let mut count = end - start;

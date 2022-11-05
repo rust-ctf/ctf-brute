@@ -1,9 +1,4 @@
-use std::{
-    ops::{Range, RangeInclusive},
-    str::FromStr,
-};
-
-use itertools::Itertools;
+use std::ops::{Range, RangeInclusive};
 
 use super::{Pattern, PatternIter};
 
@@ -15,11 +10,11 @@ impl Iterator for PatternIter {
             Self::Range(range) => Some(range.next()?.to_string()),
             Self::MRange(range) => Some(range.next()?.to_string()),
             Self::Empty(b) => {
-                if *b == false {
+                if *b {
+                    None
+                } else {
                     *b = true;
                     Some(String::new())
-                } else {
-                    None
                 }
             }
             Self::Group(patterns, iterators, last) => {
@@ -43,21 +38,20 @@ impl Iterator for PatternIter {
                             last[i] = next_val;
                         } else {
                             next = false;
-                            last[i] = next_val
+                            last[i] = next_val;
                         }
                     }
                     //Error one of iterators had 0 results (shouldnt be possible)
                     if last[i].is_none() {
                         return None;
-                    } else {
-                        let res = last[i].as_ref().unwrap();
-                        result.insert_str(0, res.as_str())
-                    }
+                    } 
+                    let res = last[i].as_ref().unwrap();
+                    result.insert_str(0, res.as_str());
                 }
                 Some(result)
             }
             Self::Length(iteratrs) => loop {
-                if iteratrs.len() == 0 {
+                if iteratrs.is_empty() {
                     return None;
                 }
                 let next = iteratrs[0].next();
@@ -67,7 +61,6 @@ impl Iterator for PatternIter {
                 }
                 return next;
             },
-            _ => None,
         }
     }
 }
@@ -79,8 +72,8 @@ impl Pattern {
             Self::MRange(range) => PatternIter::MRange(range.iter()),
             Self::Group(patterns) => PatternIter::Group(
                 patterns.clone(),
-                patterns.into_iter().map(|p| p.iter()).collect(),
-                patterns.into_iter().map(|p| None).collect(),
+                patterns.iter().map(Pattern::iter).collect(),
+                patterns.iter().map(|_| None).collect(),
             ),
             Self::Length(pattern, range) => {
                 let patterns: Vec<PatternIter> = range
@@ -90,7 +83,7 @@ impl Pattern {
                         if i == 0 {
                             return Self::Empty().into_iter();
                         }
-                        let patterns: Vec<Pattern> = RangeInclusive::new(1, i)
+                        let patterns: Vec<Self> = RangeInclusive::new(1, i)
                             .map(|_| *pattern.clone())
                             .collect();
                         Self::Group(patterns).into_iter()
@@ -99,7 +92,6 @@ impl Pattern {
                 PatternIter::Length(patterns)
             }
             Self::Empty() => PatternIter::Empty(false),
-            _ => todo!(),
         }
     }
 }

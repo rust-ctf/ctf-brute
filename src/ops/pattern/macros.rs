@@ -1,13 +1,13 @@
 use std::{
     collections::VecDeque,
-    ops::{Index, RangeInclusive},
+    ops::RangeInclusive,
 };
 
 use crate::ops::{BruteRange, MBruteRange};
 
 use super::Pattern;
 
-use logos::{internal::LexerInternal, Lexer, Logos};
+use logos::{Lexer, Logos};
 use nonempty::NonEmpty;
 
 #[derive(Logos, Debug, PartialEq)]
@@ -100,7 +100,7 @@ fn lex_lenght(lex: &mut Lexer<Token>) -> Option<(u32, u32)> {
     if split.len() != 2 {
         return None;
     }
-    let l: u32 = split.get(0)?.parse().ok()?;
+    let l: u32 = split.first()?.parse().ok()?;
     let r: u32 = split.get(1)?.parse().ok()?;
     if r < l {
         return None;
@@ -110,18 +110,18 @@ fn lex_lenght(lex: &mut Lexer<Token>) -> Option<(u32, u32)> {
 
 fn parse_pattern(pattern: &str) -> Option<Pattern> {
     let mut lex = Token::lexer(pattern);
-    parse_group(&mut lex, None)
+    parse_group(&mut lex, &None)
 }
 
-fn parse_group(lex: &mut Lexer<Token>, end: Option<Token>) -> Option<Pattern> {
+fn parse_group(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
     let mut patterns: VecDeque<Pattern> = VecDeque::new();
     loop {
         let pattern = match lex.next() {
             Some(Token::Char(c)) => Pattern::Range(BruteRange::from_char(c)),
             Some(Token::Range((l, r))) => Pattern::Range(BruteRange::new(l, r)),
             Some(Token::Escape(e)) => pattern_from_escape(e)?,
-            Some(Token::LParen) => parse_group(lex, Some(Token::RParen))?,
-            Some(Token::LColon) => parse_range(lex, Some(Token::RColon))?,
+            Some(Token::LParen) => parse_group(lex, &Some(Token::RParen))?,
+            Some(Token::LColon) => parse_range(lex, &Some(Token::RColon))?,
             Some(Token::Length((l, r))) => {
                 let last = patterns.pop_back()?;
                 Pattern::Length(Box::new(last), RangeInclusive::new(l, r))
@@ -129,9 +129,8 @@ fn parse_group(lex: &mut Lexer<Token>, end: Option<Token>) -> Option<Pattern> {
             t => {
                 if end.eq(&t) {
                     break;
-                } else {
-                    return None;
                 }
+                return None;
             }
         };
         patterns.push_back(pattern);
@@ -144,7 +143,7 @@ fn parse_group(lex: &mut Lexer<Token>, end: Option<Token>) -> Option<Pattern> {
     }
 }
 
-fn parse_range(lex: &mut Lexer<Token>, end: Option<Token>) -> Option<Pattern> {
+fn parse_range(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
     let mut patterns: VecDeque<BruteRange> = VecDeque::new();
     loop {
         match lex.next() {
@@ -158,9 +157,8 @@ fn parse_range(lex: &mut Lexer<Token>, end: Option<Token>) -> Option<Pattern> {
             t => {
                 if end.eq(&t) {
                     break;
-                } else {
-                    return None;
-                }
+                } 
+                return None;
             }
         };
     }
@@ -194,7 +192,7 @@ fn pattern_from_escape(c: char) -> Option<Pattern> {
     }
 }
 
-fn ranges_from_escape(c: char) -> Option<&'static [BruteRange]> {
+const fn ranges_from_escape(c: char) -> Option<&'static [BruteRange]> {
     match c {
         'w' => Some(&BruteRange::RANGES_LETTERS_LOWERCASE),
         'W' => Some(&BruteRange::RANGES_LETTERS_UPPERCASE),

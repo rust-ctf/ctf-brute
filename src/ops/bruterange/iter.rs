@@ -21,7 +21,7 @@ impl Iterator for BruteRangeIter {
 }
 
 impl BruteRange {
-    pub fn iter(&self) -> BruteRangeIter {
+    pub const fn iter(self) -> BruteRangeIter {
         BruteRangeIter {
             end: self.end as u32,
             index: self.start as u32,

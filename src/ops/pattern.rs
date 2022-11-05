@@ -1,8 +1,4 @@
-use std::{
-    iter::{Flatten, Map},
-    ops::{Range, RangeInclusive, RangeTo},
-    vec::IntoIter,
-};
+use std::ops::RangeInclusive;
 
 mod iter;
 mod macros;
@@ -34,7 +30,7 @@ impl Pattern {
             Self::Range(range) => Some(range.len() as u128),
             Self::MRange(range) => Some(range.len() as u128),
             Self::Group(patterns) => patterns
-                .into_iter()
+                .iter()
                 .fold(Some(1u128), |b, x| x.len()?.checked_mul(b?)),
             Self::Empty() => Some(1u128),
             Self::Length(pattern, range) => {
