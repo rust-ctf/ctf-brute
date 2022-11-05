@@ -1,4 +1,7 @@
-use std::ops::{Range, RangeInclusive};
+use std::{
+    ops::{Range, RangeInclusive},
+    str::FromStr,
+};
 
 use itertools::Itertools;
 
@@ -11,6 +14,14 @@ impl Iterator for PatternIter {
         match self {
             Self::Range(range) => Some(range.next()?.to_string()),
             Self::MRange(range) => Some(range.next()?.to_string()),
+            Self::Empty(b) => {
+                if *b == false {
+                    *b = true;
+                    Some(String::new())
+                } else {
+                    None
+                }
+            }
             Self::Group(patterns, iterators, last) => {
                 assert_eq!(patterns.len(), iterators.len());
                 assert_eq!(iterators.len(), last.len());
@@ -76,14 +87,18 @@ impl Pattern {
                     .clone()
                     .into_iter()
                     .map(|i| {
-                        let patterns: Vec<Pattern> = RangeInclusive::new(0, i)
-                            .map(|x| *pattern.clone())
+                        if i == 0 {
+                            return Self::Empty().into_iter();
+                        }
+                        let patterns: Vec<Pattern> = RangeInclusive::new(1, i)
+                            .map(|_| *pattern.clone())
                             .collect();
                         Self::Group(patterns).into_iter()
                     })
                     .collect();
                 PatternIter::Length(patterns)
             }
+            Self::Empty() => PatternIter::Empty(false),
             _ => todo!(),
         }
     }
@@ -120,7 +135,7 @@ mod tests {
     fn test_lenght() {
         let pattern = Pattern::Length(
             Box::new(Pattern::Range(BruteRange::from_range('a'..='c'))),
-            0..=1,
+            1..=2,
         );
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(
@@ -133,16 +148,16 @@ mod tests {
     fn test_lenght2() {
         let pattern = Pattern::Length(
             Box::new(Pattern::Range(BruteRange::from_range('a'..='c'))),
-            0..=2,
+            0..=3,
         );
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(
             result,
             vec![
-                "a", "b", "c", "aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc", "aaa", "aab",
-                "aac", "aba", "abb", "abc", "aca", "acb", "acc", "baa", "bab", "bac", "bba", "bbb",
-                "bbc", "bca", "bcb", "bcc", "caa", "cab", "cac", "cba", "cbb", "cbc", "cca", "ccb",
-                "ccc"
+                "", "a", "b", "c", "aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc", "aaa",
+                "aab", "aac", "aba", "abb", "abc", "aca", "acb", "acc", "baa", "bab", "bac", "bba",
+                "bbb", "bbc", "bca", "bcb", "bcc", "caa", "cab", "cac", "cba", "cbb", "cbc", "cca",
+                "ccb", "ccc"
             ]
         );
     }

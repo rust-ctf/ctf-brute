@@ -4,10 +4,8 @@ use crate::ops::{BruteRange, MBruteRange};
 
 use super::Pattern;
 
-macro_rules! pattern {
-    ( $var:expr ) => {
-        parse_group_str($var).unwrap()
-    };
+fn parse_pattern(pattern: &str) -> Option<Pattern> {
+    parse_group_str(pattern)
 }
 
 fn parse_group_str(pattern: &str) -> Option<Pattern> {
@@ -82,13 +80,10 @@ fn parse_pattern_length(queue: &mut VecDeque<char>, p: Pattern) -> Option<Patter
             return None;
         }
         let l2 = parse_digit_length(queue)?;
-        if l2 < l1 || l2 < 1 || l1 < 1 {
+        if l2 < l1 {
             return None;
         }
-        let ret = Some(Pattern::Length(
-            Box::new(p),
-            RangeInclusive::new(l1 - 1, l2 - 1),
-        ));
+        let ret = Some(Pattern::Length(Box::new(p), RangeInclusive::new(l1, l2)));
         if let Some('}') = queue.pop_front() {
             return ret;
         } else {
@@ -116,25 +111,104 @@ fn parse_digit_length(queue: &mut VecDeque<char>) -> Option<u32> {
     if str.is_empty() {
         None
     } else {
-        let num = str.parse().unwrap();
-        if num == 0 {
-            return None;
-        }
-        Some(num)
+        Some(str.parse().unwrap())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use crate::ops::BruteRange;
 
     use super::*;
     use nonempty::{nonempty, NonEmpty};
 
     #[test]
-    fn test_group_digit() {
-        let pattern = pattern!(r"\d");
+    fn test_no_pattern() {
+        let pattern = parse_pattern(r"abcDEF123").unwrap();
         let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["abcDEF123"]);
+    }
+
+    #[test]
+    fn test_no_pattern_group() {
+        let pattern = parse_pattern(r"(abcDEF123)").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["abcDEF123"]);
+    }
+
+    #[test]
+    fn test_no_pattern_groups() {
+        let pattern = parse_pattern(r"(a)(b)(c)(D)(E)(F)(1)(2)(3)").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["abcDEF123"]);
+    }
+
+    #[test]
+    fn test_no_pattern_nested_groups() {
+        let pattern = parse_pattern(r"(a(b)c(D(E)F)1(23))").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["abcDEF123"]);
+    }
+
+    #[test]
+    fn test_pattern_repeat() {
+        let pattern = parse_pattern(r"a{1,4}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["a", "aa", "aaa", "aaaa"]);
+    }
+
+    #[test]
+    fn test_pattern_repeat_zero_start() {
+        let pattern = parse_pattern(r"c{0,4}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["", "c", "cc", "ccc", "cccc"]);
+    }
+
+    #[test]
+    fn test_pattern_repeat_group() {
+        let pattern = parse_pattern(r"a{1,4}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec![r"a", "aa", "aaa", "aaaa"]);
+    }
+
+    #[test]
+    fn test_pattern_repeat_single_lenght() {
+        let pattern = parse_pattern(r"a{1,4}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec![r"a", "aa", "aaa", "aaaa"]);
+    }
+
+    #[test]
+    fn test_escape_unsupported() {
+        let pattern = parse_pattern(r"\\\[\]\{\}\(\)\-").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec![r"\[]{}()-"]);
+    }
+
+    #[test]
+    fn test_escape_special_letter() {
+        let pattern = parse_pattern(r"\\\[\]\{\}\(\)\-").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec![r"\[]{}()-"]);
+    }
+
+    #[test]
+    fn test_escape_digit() {
+        let pattern = parse_pattern(r"\d").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
         assert_eq!(
             result,
             vec!["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
@@ -142,67 +216,207 @@ mod tests {
     }
 
     #[test]
-    fn test_group_range() {
-        let pattern = pattern!(r"A-C0");
+    fn test_escape_letter() {
+        let pattern = parse_pattern(r"\l").unwrap();
         let result: Vec<String> = pattern.iter().collect();
-        assert_eq!(result, vec!["A0", "B0", "C0"]);
-    }
-
-    #[test]
-    fn test_char_lenght() {
-        let pattern = pattern!(r"a{1,3}");
-        let result: Vec<String> = pattern.iter().collect();
-        assert_eq!(result, vec!["a", "aa", "aaa"]);
-    }
-
-    #[test]
-    fn test_group_lenght() {
-        let pattern = pattern!(r"(a){1,3}");
-        let result: Vec<String> = pattern.iter().collect();
-        assert_eq!(result, vec!["a", "aa", "aaa"]);
-    }
-
-    #[test]
-    fn test_group_lenght2() {
-        let pattern = pattern!(r"ctf\{(ab{1,2}){1,3}\}");
-        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
         assert_eq!(
             result,
             vec![
-                "ctf{ab}",
-                "ctf{abb}",
-                "ctf{abab}",
-                "ctf{ababb}",
-                "ctf{abbab}",
-                "ctf{abbabb}",
-                "ctf{ababab}",
-                "ctf{abababb}",
-                "ctf{ababbab}",
-                "ctf{ababbabb}",
-                "ctf{abbabab}",
-                "ctf{abbababb}",
-                "ctf{abbabbab}",
-                "ctf{abbabbabb}"
+                "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+                "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f",
+                "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
+                "w", "x", "y", "z"
             ]
         );
     }
 
     #[test]
-    fn test_group_digits() {
-        let pattern = pattern!(r"\d\d");
+    fn test_escape_letter_lowercase() {
+        let pattern = parse_pattern(r"\w").unwrap();
         let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
         assert_eq!(
             result,
             vec![
-                "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13",
-                "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27",
-                "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41",
-                "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55",
-                "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69",
-                "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83",
-                "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97",
-                "98", "99"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+                "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
             ]
         );
+    }
+
+    #[test]
+    fn test_escape_letter_uppercase() {
+        let pattern = parse_pattern(r"\W").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+                "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_hex() {
+        let pattern = parse_pattern(r"\x").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                "a", "b", "c", "d", "e", "f"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_hex_lowercase() {
+        let pattern = parse_pattern(r"\h").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec!["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+        );
+    }
+
+    #[test]
+    fn test_escape_hex_uppercase() {
+        let pattern = parse_pattern(r"\H").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec!["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
+        );
+    }
+
+    #[test]
+    fn test_escape_punct() {
+        let pattern = parse_pattern(r"\p").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":",
+                ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`", "{", "|", "}", "~"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_alphanum() {
+        let pattern = parse_pattern(r"\m").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+                "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+                "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_alphanum_lowercase() {
+        let pattern = parse_pattern(r"\n").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f",
+                "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
+                "w", "x", "y", "z"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_alphanum_uppercase() {
+        let pattern = parse_pattern(r"\N").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F",
+                "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+                "W", "X", "Y", "Z"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_brute() {
+        let pattern = parse_pattern(r"\b").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(
+            result,
+            vec![
+                "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0",
+                "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "@",
+                "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+                "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "\\", "]", "^", "_", "`",
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+                "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_escape_ascii() {
+        let pattern = parse_pattern(r"\a").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        let expected: Vec<String> = (0..=0xff)
+            .into_iter()
+            .map(|x| char::from_u32(x))
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap().to_string())
+            .collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_escape_unicode() {
+        let pattern = parse_pattern(r"\u").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        let expected: Vec<String> = (0..=0x10ffff)
+            .into_iter()
+            .map(|x| char::from_u32(x))
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap().to_string())
+            .collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_escape_invalid() {
+        let allowed_chars = HashSet::from([
+            '\\', '[', ']', '{', '}', '(', ')', '-', 'w', 'W', 'd', 'u', 'a', 'l', 'h', 'H', 'x',
+            'p', 'n', 'N', 'm', 'b',
+        ]);
+
+        let not_allowed_escapes: Vec<char> = (0..=0x10ffff)
+            .into_iter()
+            .map(|x| char::from_u32(x))
+            .filter(|x| x.is_some() && !allowed_chars.contains(&x.unwrap()))
+            .map(|x| x.unwrap())
+            .collect();
+        for escape in not_allowed_escapes {
+            let pattern = parse_pattern(format!("\\{escape}").as_str());
+            assert!(pattern.is_none());
+        }
     }
 }
