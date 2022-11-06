@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
-mod iter;
-mod macros;
+pub mod iter;
+mod parser;
 
 use super::{bruterange::BruteRangeIter, mbruterange::MBruteRangeIter, BruteRange, MBruteRange};
 
@@ -25,6 +25,10 @@ pub enum PatternIter {
 }
 
 impl Pattern {
+    pub fn from_pattern(pattern: &str) -> Option<Pattern> {
+        parser::parse_pattern(pattern)
+    }
+
     pub fn len(&self) -> Option<u128> {
         match &self {
             Self::Range(range) => Some(range.len() as u128),

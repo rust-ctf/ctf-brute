@@ -1,4 +1,4 @@
-mod ops;
+pub mod ops;
 
 // use std::{iter::Map, ops::RangeInclusive, result};
 

@@ -12,3 +12,10 @@ license = "MIT"
 itertools = "0.10.5"
 logos = "0.12.1"
 nonempty = "0.8.0"
+
+[dev-dependencies]
+criterion = "0.4.0"
+
+[[bench]]
+name = "pattern_benchmark"
+harness = false

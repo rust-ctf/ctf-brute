@@ -1,7 +1,4 @@
-use std::{
-    collections::VecDeque,
-    ops::RangeInclusive,
-};
+use std::{collections::VecDeque, ops::RangeInclusive};
 
 use crate::ops::{BruteRange, MBruteRange};
 
@@ -26,6 +23,7 @@ enum Token {
     RColon,
 
     #[regex(r"\{[\d]+\}", lex_lenght_single)]
+    #[regex(r"\{,[\d]+\}", lex_lenght_from_zero)]
     #[regex(r"\{[\d]+,[\d]+\}", lex_lenght)]
     Length((u32, u32)),
 
@@ -91,6 +89,12 @@ fn lex_escape_unicode(lex: &mut Lexer<Token>) -> Option<char> {
 fn lex_lenght_single(lex: &mut Lexer<Token>) -> Option<(u32, u32)> {
     let slice = lex.slice();
     let n: u32 = slice[1..slice.len() - 1].parse().ok()?; // skip '{}'
+    Some((n, n))
+}
+
+fn lex_lenght_from_zero(lex: &mut Lexer<Token>) -> Option<(u32, u32)> {
+    let slice = lex.slice();
+    let n: u32 = slice[2..slice.len() - 1].parse().ok()?; // skip '{,}'
     Some((0, n))
 }
 
@@ -108,7 +112,7 @@ fn lex_lenght(lex: &mut Lexer<Token>) -> Option<(u32, u32)> {
     Some((l, r))
 }
 
-fn parse_pattern(pattern: &str) -> Option<Pattern> {
+pub fn parse_pattern(pattern: &str) -> Option<Pattern> {
     let mut lex = Token::lexer(pattern);
     parse_group(&mut lex, &None)
 }
@@ -157,7 +161,7 @@ fn parse_range(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
             t => {
                 if end.eq(&t) {
                     break;
-                } 
+                }
                 return None;
             }
         };
@@ -285,6 +289,15 @@ mod tests {
         assert_eq!(result, vec!["", "ab", "abab", "ababab"]);
     }
 
+    
+    #[test]
+    fn test_pattern_repeat_from_zero() {
+        let pattern = parse_pattern(r"(ab){,3}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["", "ab", "abab", "ababab"]);
+    }
+
     #[test]
     fn test_pattern_repeat_same_lenght() {
         let pattern = parse_pattern(r"c{1,1}").unwrap();
@@ -296,6 +309,30 @@ mod tests {
     #[test]
     fn test_pattern_repeat_same_lenght_zero() {
         let pattern = parse_pattern(r"c{0,0}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec![""]);
+    }
+
+    #[test]
+    fn test_pattern_repeat_same_lenght2() {
+        let pattern = parse_pattern(r"A{2}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec!["AA"]);
+    }
+
+    #[test]
+    fn test_pattern_repeat_same_lenght_zero2() {
+        let pattern = parse_pattern(r"c{0}").unwrap();
+        let result: Vec<String> = pattern.iter().collect();
+        assert_eq!(pattern.len().unwrap(), result.len() as u128);
+        assert_eq!(result, vec![""]);
+    }
+
+    #[test]
+    fn test_pattern_repeat_same_lenght_zero_from_zero() {
+        let pattern = parse_pattern(r"c{,0}").unwrap();
         let result: Vec<String> = pattern.iter().collect();
         assert_eq!(pattern.len().unwrap(), result.len() as u128);
         assert_eq!(result, vec![""]);

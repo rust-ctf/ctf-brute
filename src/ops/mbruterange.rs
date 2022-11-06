@@ -31,7 +31,7 @@ impl MBruteRange {
     }
 
     pub fn len(&self) -> usize {
-        self.ranges.iter().map(|x|x.len() as usize).sum()
+        self.ranges.iter().map(|x| x.len() as usize).sum()
     }
 }
 

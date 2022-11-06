@@ -44,7 +44,7 @@ impl Iterator for PatternIter {
                     //Error one of iterators had 0 results (shouldnt be possible)
                     if last[i].is_none() {
                         return None;
-                    } 
+                    }
                     let res = last[i].as_ref().unwrap();
                     result.insert_str(0, res.as_str());
                 }
