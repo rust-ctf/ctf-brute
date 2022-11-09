@@ -47,7 +47,7 @@ Pattern supports regex-like syntax for generating text that
 use ctf_brute::ops::Pattern;
 
 fn main() {
-    let pattern = Pattern::from_pattern("(abc){1,4} End").expect("Failed to parse pattern");
+    let pattern = Pattern::from_pattern("(abc){1,4}").expect("Failed to parse pattern");
     for result in pattern.iter() {
         println!("{result}");
     }
