@@ -17,30 +17,30 @@ Pattern supports regex-like syntax for generating text that
 |escaped letter| '\{' | letter that cannot be used standalone due to syntax use. Escaped characters: "[]\(\)\{\}-" |
 |ascii letter | '\x4F' | letter in ascii notation |
 |unicode letter| '\u1F92F' | letter in unicode notation |
-|range| 'A-Z' | all letters from smaller to larger letter (unicode value)
-|advanced range| [abC-Ef-g] | multiple ranges and/or letters
-|group| (pattern) | groups multiple patterns
-|repeater| pattern{n} | repeats pattern n times
-|advanced repeater| pattern{n,m} | repeats pattern for all numbers between n and m
-|zero repeater| pattern{,n} | repeats pattern for all numbers between 0 and n
+|range| 'A-Z' | all letters from smaller to larger letter (unicode value) |
+|advanced range| [abC-Ef-g] | multiple ranges and/or letters |
+|group| (pattern) | groups multiple patterns |
+|repeater| pattern{n} | repeats pattern n times |
+|advanced repeater| pattern{n,m} | repeats pattern for all numbers between n and m |
+|zero repeater| pattern{,n} | repeats pattern for all numbers between 0 and n |
 
 ### Special Symbols
 | Symbol | Description | Character set |
 | --- | --- | --- |
-|\w| lowercase letters | "abcdefghijklmnopqrstuvwxyz"
-|\W| uppercase letters | "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-|\l| letters | "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-|\d| numbers | "0123456789"
-|\h| lowercase hexadecimal letters | "0123456789abcdef"
-|\H| uppercase hexadecimal letters | "0123456789ABCDEF"
-|\X| hexadecimal letters | "0123456789ABCDEFabcdef"
-|\p| punctuations | "!\"#$%&'\(\)*+,-./:;<=>?@[\\]^_`\{\|\}~"
-|\n| lowercase alphanumeric letters | "0123456789abcdefghijklmnopqrstuvwxyz"
-|\N| uppercase alphanumeric letters | "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-|\m| alphanumeric letters | "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-|\b| alpha numeric and punctuations | "!\"#$%&'\(\)*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{\|\}~"
-|\a| ascii | All ascii characters
-|\U| unicode | All unicode characters
+|\w| lowercase letters | "abcdefghijklmnopqrstuvwxyz" |
+|\W| uppercase letters | "ABCDEFGHIJKLMNOPQRSTUVWXYZ" |
+|\l| letters | "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" |
+|\d| numbers | "0123456789" |
+|\h| lowercase hexadecimal letters | "0123456789abcdef" |
+|\H| uppercase hexadecimal letters | "0123456789ABCDEF" |
+|\X| hexadecimal letters | "0123456789ABCDEFabcdef" |
+|\p| punctuations | "!\"#$%&'\(\)*+,-./:;<=>?@[\\]^_`\{\|\}~" |
+|\n| lowercase alphanumeric letters | "0123456789abcdefghijklmnopqrstuvwxyz" |
+|\N| uppercase alphanumeric letters | "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" |
+|\m| alphanumeric letters | "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" |
+|\b| alpha numeric and punctuations | "!\"#$%&'\(\)*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{\|\}~" |
+|\a| ascii | All ascii characters |
+|\U| unicode | All unicode characters |
 
 ### Examples
 ```rs
