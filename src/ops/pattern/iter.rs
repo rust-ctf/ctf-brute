@@ -2,7 +2,7 @@ use std::ops::{Range, RangeInclusive};
 
 use super::{Pattern, PatternIter};
 
-impl Iterator for PatternIter {
+impl Iterator for PatternIter<'_> {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -18,37 +18,38 @@ impl Iterator for PatternIter {
                 }
             }
             Self::Group(patterns, iterators, last) => {
-                assert_eq!(patterns.len(), iterators.len());
-                assert_eq!(iterators.len(), last.len());
-                let range = Range {
-                    start: 0,
-                    end: iterators.len(),
-                };
-                let mut next = true;
-                let mut result = String::new();
-                for i in range.into_iter().rev() {
-                    if last[i].is_none() || next {
-                        let mut next_val = iterators[i].next();
-                        if i == 0 && next_val.is_none() {
-                            return None; //End
-                        }
-                        if next_val.is_none() {
-                            iterators[i] = patterns[i].iter();
-                            next_val = iterators[i].next();
-                            last[i] = next_val;
-                        } else {
-                            next = false;
-                            last[i] = next_val;
-                        }
-                    }
-                    //Error one of iterators had 0 results (shouldnt be possible)
-                    if last[i].is_none() {
-                        return None;
-                    }
-                    let res = last[i].as_ref().unwrap();
-                    result.insert_str(0, res.as_str());
-                }
-                Some(result)
+                todo!()
+                // assert_eq!(patterns.len(), iterators.len());
+                // assert_eq!(iterators.len(), last.len());
+                // let range = Range {
+                //     start: 0,
+                //     end: iterators.len(),
+                // };
+                // let mut next = true;
+                // let mut result = String::new();
+                // for i in range.into_iter().rev() {
+                //     if last[i].is_none() || next {
+                //         let mut next_val = iterators[i].next();
+                //         if i == 0 && next_val.is_none() {
+                //             return None; //End
+                //         }
+                //         if next_val.is_none() {
+                //             iterators[i] = patterns[i].iter();
+                //             next_val = iterators[i].next();
+                //             last[i] = next_val;
+                //         } else {
+                //             next = false;
+                //             last[i] = next_val;
+                //         }
+                //     }
+                //     //Error one of iterators had 0 results (shouldnt be possible)
+                //     if last[i].is_none() {
+                //         return None;
+                //     }
+                //     let res = last[i].as_ref().unwrap();
+                //     result.insert_str(0, res.as_str());
+                //}
+                //Some(result)
             }
             Self::Length(iteratrs) => loop {
                 if iteratrs.is_empty() {
@@ -76,35 +77,36 @@ impl Pattern {
                 patterns.iter().map(|_| None).collect(),
             ),
             Self::Length(pattern, range) => {
-                let patterns: Vec<PatternIter> = range
-                    .clone()
-                    .into_iter()
-                    .map(|i| {
-                        if i == 0 {
-                            return Self::Empty().into_iter();
-                        }
-                        let patterns: Vec<Self> = RangeInclusive::new(1, i)
-                            .map(|_| *pattern.clone())
-                            .collect();
-                        Self::Group(patterns).into_iter()
-                    })
-                    .collect();
-                PatternIter::Length(patterns)
+                // let patterns: Vec<PatternIter> = range
+                //     .clone()
+                //     .into_iter()
+                //     .map(|i| {
+                //         if i == 0 {
+                //             return Self::Empty().iter();
+                //         }
+                //         let patterns: Vec<Self> = RangeInclusive::new(1, i)
+                //             .map(|_| *pattern.clone())
+                //             .collect();
+                //         Self::Group(patterns).iter()
+                //     })
+                //     .collect();
+                // PatternIter::Length(patterns)
+                todo!()
             }
             Self::Empty() => PatternIter::Empty(false),
         }
     }
 }
 
-impl IntoIterator for Pattern {
-    type Item = String;
+// impl<'a> IntoIterator for &'a Pattern {
+//     type Item = String;
 
-    type IntoIter = PatternIter;
+//     type IntoIter = PatternIter<'a>;
 
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
+//     fn into_iter(self) -> Self::IntoIter {
+//         self.iter()
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

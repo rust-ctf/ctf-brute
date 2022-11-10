@@ -16,12 +16,12 @@ pub enum Pattern {
 }
 
 #[derive(Clone, Debug)]
-pub enum PatternIter {
-    Range(BruteRangeIter),
-    MRange(MBruteRangeIter),
+pub enum PatternIter<'a> {
+    Range(BruteRangeIter<'a>),
+    MRange(MBruteRangeIter<'a>),
     Empty(bool),
-    Group(Vec<Pattern>, Vec<PatternIter>, Vec<Option<String>>),
-    Length(Vec<PatternIter>), //Flatten<Map<RangeInclusive<u32>, Fn>>)
+    Group(Vec<Pattern>, Vec<PatternIter<'a>>, Vec<Option<String>>),
+    Length(Vec<PatternIter<'a>>), //Flatten<Map<RangeInclusive<u32>, Fn>>)
 }
 
 impl Pattern {

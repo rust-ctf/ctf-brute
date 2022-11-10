@@ -6,19 +6,10 @@ impl Iterator for BruteRangeIter<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index > self.end {
+        if !self.has_next() {
             return None;
         }
-
-        assert_ne!(char::from_u32(self.index), None);
-        let chr = unsafe { char::from_u32_unchecked(self.index) };
-
-        self.index = self.index.checked_add(1)?;
-        if self.index == 0xD800 {
-            self.index += 0xE000 - 0xD800;
-        }
-
-        Some(chr)
+        Some(self.get_next())
     }
 }
 
@@ -30,13 +21,13 @@ impl ResetIter for BruteRangeIter<'_>
         self.index <= self.end && self.index <= 0x10FFFFFF
     }
 
-    fn next<'a>(&'a mut self) -> Self::Item<'a> {
+    fn get_next<'a>(&'a mut self) -> Self::Item<'a> {
         assert_ne!(char::from_u32(self.index), None);
         assert_ne!(self.index.checked_add(1), None);
 
         let chr = unsafe { char::from_u32_unchecked(self.index) };
 
-        self.index = self.index + 1;
+        self.index += 1;
         if self.index == 0xD800 {
             self.index += 0xE000 - 0xD800;
         }
@@ -44,7 +35,7 @@ impl ResetIter for BruteRangeIter<'_>
     }
 
     fn reset<'a>(&'a mut self) {
-        self.index = self.range.start;
+        self.index = self.range.start as u32;
     }
 }
 
@@ -58,15 +49,15 @@ impl BruteRange {
     }
 }
 
-impl <'a> IntoIterator for &'a BruteRange {
-    type Item = char;
+// impl <'a> IntoIterator for &'a BruteRange {
+//     type Item = char;
 
-    type IntoIter = BruteRangeIter<'a>;
+//     type IntoIter = BruteRangeIter<'a>;
 
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
+//     fn into_iter(self) -> Self::IntoIter {
+//         self.iter()
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

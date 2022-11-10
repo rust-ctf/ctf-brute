@@ -1,26 +1,65 @@
+use crate::ops::bruterange::BruteRangeIter;
+use crate::ops::resetiter::ResetIter;
+
 use super::MBruteRange;
 use super::MBruteRangeIter;
 
-impl Iterator for MBruteRangeIter {
+impl Iterator for MBruteRangeIter<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        if !self.has_next() {
+            return None;
+        }
+        Some(self.get_next())
     }
 }
 
 impl MBruteRange {
     pub fn iter(&self) -> MBruteRangeIter {
-        //TODO: Optimize iterator to not use clone
-        let iter = self.ranges.clone().into_iter().flatten();
-        MBruteRangeIter { iter }
+        let iters:Vec<BruteRangeIter> = self.ranges.iter().map(|r| r.iter()).collect();
+        MBruteRangeIter { 
+            mrange: &self,
+            index: 0,
+            iters
+        }
     }
 }
 
-impl IntoIterator for MBruteRange {
+impl ResetIter for MBruteRangeIter<'_>
+{
+    type Item<'a> = char where Self: 'a;
+
+    fn has_next<'a>(&'a self) -> bool {
+        self.index < self.iters.len()
+    }
+
+    fn get_next<'a>(&'a mut self) -> Self::Item<'a> {
+        assert!(self.iters.get(self.index).is_some());
+        let iter = &mut self.iters[self.index];
+        assert!(iter.has_next());
+        let val = iter.get_next();
+        if !iter.has_next() 
+        {
+            assert_ne!(self.index.checked_add(1), None);
+            self.index += 1;
+        }
+        val
+    }
+
+    fn reset<'a>(&'a mut self) {
+        self.index = 0;
+        for iter in self.iters.iter_mut()
+        {
+            iter.reset();
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a MBruteRange {
     type Item = char;
 
-    type IntoIter = MBruteRangeIter;
+    type IntoIter = MBruteRangeIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
