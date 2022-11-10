@@ -1,6 +1,8 @@
+use crate::ops::resetiter::ResetIter;
+
 use super::{BruteRange, BruteRangeIter};
 
-impl Iterator for BruteRangeIter {
+impl Iterator for BruteRangeIter<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -20,19 +22,46 @@ impl Iterator for BruteRangeIter {
     }
 }
 
+impl ResetIter for BruteRangeIter<'_>
+{
+    type Item<'a> = char where Self: 'a;
+
+    fn has_next<'a>(&'a self) -> bool {
+        self.index <= self.end && self.index <= 0x10FFFFFF
+    }
+
+    fn next<'a>(&'a mut self) -> Self::Item<'a> {
+        assert_ne!(char::from_u32(self.index), None);
+        assert_ne!(self.index.checked_add(1), None);
+
+        let chr = unsafe { char::from_u32_unchecked(self.index) };
+
+        self.index = self.index + 1;
+        if self.index == 0xD800 {
+            self.index += 0xE000 - 0xD800;
+        }
+        chr
+    }
+
+    fn reset<'a>(&'a mut self) {
+        self.index = self.range.start;
+    }
+}
+
 impl BruteRange {
-    pub const fn iter(self) -> BruteRangeIter {
+    pub const fn iter(&self) -> BruteRangeIter {
         BruteRangeIter {
+            range: &self,
             end: self.end as u32,
             index: self.start as u32,
         }
     }
 }
 
-impl IntoIterator for BruteRange {
+impl <'a> IntoIterator for &'a BruteRange {
     type Item = char;
 
-    type IntoIter = BruteRangeIter;
+    type IntoIter = BruteRangeIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()

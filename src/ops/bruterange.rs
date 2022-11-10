@@ -10,7 +10,8 @@ pub struct BruteRange {
 }
 
 #[derive(Clone, Debug)]
-pub struct BruteRangeIter {
+pub struct BruteRangeIter<'a> {
+    pub(crate) range: &'a BruteRange,
     pub(crate) end: u32,
     pub(crate) index: u32,
 }
