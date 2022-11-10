@@ -17,17 +17,16 @@ impl Iterator for MBruteRangeIter<'_> {
 
 impl MBruteRange {
     pub fn iter(&self) -> MBruteRangeIter {
-        let iters:Vec<BruteRangeIter> = self.ranges.iter().map(|r| r.iter()).collect();
-        MBruteRangeIter { 
+        let iters: Vec<BruteRangeIter> = self.ranges.iter().map(|r| r.iter()).collect();
+        MBruteRangeIter {
             mrange: &self,
             index: 0,
-            iters
+            iters,
         }
     }
 }
 
-impl ResetIter for MBruteRangeIter<'_>
-{
+impl ResetIter for MBruteRangeIter<'_> {
     type Item<'a> = char where Self: 'a;
 
     fn has_next<'a>(&'a self) -> bool {
@@ -39,8 +38,7 @@ impl ResetIter for MBruteRangeIter<'_>
         let iter = &mut self.iters[self.index];
         assert!(iter.has_next());
         let val = iter.get_next();
-        if !iter.has_next() 
-        {
+        if !iter.has_next() {
             assert_ne!(self.index.checked_add(1), None);
             self.index += 1;
         }
@@ -49,8 +47,7 @@ impl ResetIter for MBruteRangeIter<'_>
 
     fn reset<'a>(&'a mut self) {
         self.index = 0;
-        for iter in self.iters.iter_mut()
-        {
+        for iter in self.iters.iter_mut() {
             iter.reset();
         }
     }

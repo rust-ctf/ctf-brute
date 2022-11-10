@@ -5,7 +5,7 @@ mod constant;
 mod iter;
 mod merge;
 
-use super::{BruteRange, bruterange::BruteRangeIter};
+use super::{bruterange::BruteRangeIter, BruteRange};
 
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 pub struct MBruteRange {
@@ -16,7 +16,7 @@ pub struct MBruteRange {
 pub struct MBruteRangeIter<'a> {
     pub(crate) mrange: &'a MBruteRange,
     pub(crate) index: usize,
-    pub(crate) iters: Vec<BruteRangeIter<'a>> 
+    pub(crate) iters: Vec<BruteRangeIter<'a>>,
 }
 
 impl MBruteRange {

@@ -13,8 +13,7 @@ impl Iterator for BruteRangeIter<'_> {
     }
 }
 
-impl ResetIter for BruteRangeIter<'_>
-{
+impl ResetIter for BruteRangeIter<'_> {
     type Item<'a> = char where Self: 'a;
 
     fn has_next<'a>(&'a self) -> bool {
@@ -74,7 +73,7 @@ mod tests {
     fn test_bruterange_iter_multi() {
         let range = BruteRange::from_range('c'..='g');
         let result: Vec<char> = range.iter().collect();
-        assert_eq!(range.len(), result.len());
+        assert_eq!(range.len() as usize, result.len());
         assert_eq!(result, vec!['c', 'd', 'e', 'f', 'g']);
     }
 
@@ -82,7 +81,7 @@ mod tests {
     fn test_bruterange_iter_multi_reversed() {
         let range = BruteRange::from_range('G'..='C');
         let result: Vec<char> = range.iter().collect();
-        assert_eq!(range.len(), result.len());
+        assert_eq!(range.len() as usize, result.len());
         assert_eq!(result, vec!['C', 'D', 'E', 'F', 'G']);
     }
 
@@ -90,7 +89,7 @@ mod tests {
     fn test_bruterange_iter_multi_invalid_chars_in_bound() {
         let range = BruteRange::from_range('\u{d7fe}'..='\u{e001}');
         let result: Vec<char> = range.iter().collect();
-        assert_eq!(range.len(), result.len());
+        assert_eq!(range.len() as usize, result.len());
         assert_eq!(result, vec!['\u{d7fe}', '\u{d7ff}', '\u{e000}', '\u{e001}']);
     }
 
@@ -98,7 +97,7 @@ mod tests {
     fn test_bruterange_iter_bound_end() {
         let range = BruteRange::from_range('\u{10fffe}'..='\u{10ffff}');
         let result: Vec<char> = range.iter().collect();
-        assert_eq!(range.len(), result.len());
+        assert_eq!(range.len() as usize, result.len());
         assert_eq!(result, vec!['\u{10fffe}', '\u{10ffff}']);
     }
 
@@ -106,7 +105,7 @@ mod tests {
     fn test_bruterange_iter_bound_all() {
         let range = BruteRange::from_range('\u{0}'..='\u{10ffff}');
         let result: Vec<char> = range.iter().collect();
-        assert_eq!(range.len(), result.len());
+        assert_eq!(range.len() as usize, result.len());
         let valid_chars: Vec<char> = (0..=0x10ffff)
             .into_iter()
             .map(|x| char::from_u32(x))

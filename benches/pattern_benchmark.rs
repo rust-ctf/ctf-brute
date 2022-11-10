@@ -7,7 +7,7 @@ fn bench_fn(c: &mut Criterion) {
             _ = Pattern::from_pattern("a{1,10}")
                 .unwrap()
                 .iter()
-                .for_each(|x|{});
+                .for_each(|x| {});
         });
     });
 
@@ -16,7 +16,7 @@ fn bench_fn(c: &mut Criterion) {
             _ = Pattern::from_pattern(r"\l{3}")
                 .unwrap()
                 .iter()
-                .for_each(|x|{});
+                .for_each(|x| {});
         });
     });
 
@@ -25,7 +25,7 @@ fn bench_fn(c: &mut Criterion) {
             Pattern::from_pattern(r"\d{0,5}")
                 .unwrap()
                 .iter()
-                .for_each(|x|{});
+                .for_each(|x| {});
         });
     });
 }

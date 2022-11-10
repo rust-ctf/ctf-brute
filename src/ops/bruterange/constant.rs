@@ -113,7 +113,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_PUNCT() {
-        let result: Vec<char> = BruteRange::RANGES_PUNCT.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_PUNCT
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         assert_eq!(
             result,
             vec![
@@ -125,7 +129,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_NUMBERS() {
-        let result: Vec<char> = BruteRange::RANGES_NUMBERS.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_NUMBERS
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -135,7 +143,8 @@ mod tests {
     #[test]
     fn test_iter_RANGES_LETTERS_LOWERCASE() {
         let result: Vec<char> = BruteRange::RANGES_LETTERS_LOWERCASE
-            .into_iter()
+            .iter_mut()
+            .map(|r| r.iter())
             .flatten()
             .collect();
         assert_eq!(
@@ -150,7 +159,8 @@ mod tests {
     #[test]
     fn test_iter_RANGES_LETTERS_UPPERCASE() {
         let result: Vec<char> = BruteRange::RANGES_LETTERS_UPPERCASE
-            .into_iter()
+            .iter_mut()
+            .map(|r| r.iter())
             .flatten()
             .collect();
         assert_eq!(
@@ -164,7 +174,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_LETTERS() {
-        let result: Vec<char> = BruteRange::RANGES_LETTERS.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_LETTERS
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         assert_eq!(
             result,
             vec![
@@ -178,7 +192,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_BRUTE() {
-        let result: Vec<char> = BruteRange::RANGES_BRUTE.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_BRUTE
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         assert_eq!(
             result,
             vec![
@@ -195,7 +213,8 @@ mod tests {
     #[test]
     fn test_iter_RANGES_HEX_LOWERCASE() {
         let result: Vec<char> = BruteRange::RANGES_HEX_LOWERCASE
-            .into_iter()
+            .iter_mut()
+            .map(|r| r.iter())
             .flatten()
             .collect();
         assert_eq!(
@@ -206,7 +225,8 @@ mod tests {
     #[test]
     fn test_iter_RANGES_HEX_UPPERCASE() {
         let result: Vec<char> = BruteRange::RANGES_HEX_UPPERCASE
-            .into_iter()
+            .iter_mut()
+            .map(|r| r.iter())
             .flatten()
             .collect();
         assert_eq!(
@@ -217,7 +237,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_HEX() {
-        let result: Vec<char> = BruteRange::RANGES_HEX.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_HEX
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         assert_eq!(
             result,
             vec![
@@ -230,7 +254,8 @@ mod tests {
     #[test]
     fn test_iter_RANGES_ALPHANUM_LOWERCASE() {
         let result: Vec<char> = BruteRange::RANGES_ALPHANUM_LOWERCASE
-            .into_iter()
+            .iter_mut()
+            .map(|r| r.iter())
             .flatten()
             .collect();
         assert_eq!(
@@ -246,7 +271,8 @@ mod tests {
     #[test]
     fn test_iter_RANGES_ALPHANUM_UPPERCASE() {
         let result: Vec<char> = BruteRange::RANGES_ALPHANUM_UPPERCASE
-            .into_iter()
+            .iter_mut()
+            .map(|r| r.iter())
             .flatten()
             .collect();
         assert_eq!(
@@ -261,7 +287,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_ALPHANUM() {
-        let result: Vec<char> = BruteRange::RANGES_ALPHANUM.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_ALPHANUM
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         assert_eq!(
             result,
             vec![
@@ -288,7 +318,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_ASCII() {
-        let result: Vec<char> = BruteRange::RANGES_ASCII.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_ASCII
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         let expected: Vec<char> = (0..=0xff)
             .into_iter()
             .map(|x| char::from_u32(x))
@@ -314,7 +348,11 @@ mod tests {
 
     #[test]
     fn test_iter_RANGES_UNICODE() {
-        let result: Vec<char> = BruteRange::RANGES_UNICODE.into_iter().flatten().collect();
+        let result: Vec<char> = BruteRange::RANGES_UNICODE
+            .iter_mut()
+            .map(|r| r.iter())
+            .flatten()
+            .collect();
         let expected: Vec<char> = (0..=0x10ffff)
             .into_iter()
             .map(|x| char::from_u32(x))

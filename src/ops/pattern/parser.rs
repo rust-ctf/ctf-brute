@@ -289,7 +289,6 @@ mod tests {
         assert_eq!(result, vec!["", "ab", "abab", "ababab"]);
     }
 
-    
     #[test]
     fn test_pattern_repeat_from_zero() {
         let pattern = parse_pattern(r"(ab){,3}").unwrap();

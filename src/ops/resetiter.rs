@@ -1,7 +1,7 @@
-
-pub trait ResetIter
-{
-    type Item<'a> where Self: 'a;
+pub trait ResetIter {
+    type Item<'a>
+    where
+        Self: 'a;
 
     fn has_next<'a>(&'a self) -> bool;
 
