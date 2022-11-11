@@ -21,7 +21,7 @@ impl ResetIter for BruteRangeIter<'_> {
     }
 
     fn move_next<'a>(&'a mut self) {
-        assert_ne!(self.index.checked_add(1), None);
+        debug_assert_ne!(self.index.checked_add(1), None);
         self.index += 1;
         if self.index == 0xD800 {
             self.index += 0xE000 - 0xD800;
@@ -35,7 +35,7 @@ impl ResetIter for BruteRangeIter<'_> {
     }
 
     fn peek<'a>(&'a self) -> Self::Item<'a> {
-        assert_ne!(char::from_u32(self.index), None);
+        debug_assert_ne!(char::from_u32(self.index), None);
         unsafe { char::from_u32_unchecked(self.index) }
     }
 

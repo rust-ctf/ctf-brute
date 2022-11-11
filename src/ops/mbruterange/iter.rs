@@ -34,11 +34,11 @@ impl ResetIter for MBruteRangeIter<'_> {
     }
 
     fn move_next<'a>(&'a mut self) {
-        assert!(self.iters.get(self.index).is_some());
+        debug_assert!(self.iters.get(self.index).is_some());
         let iter = &mut self.iters[self.index];
         iter.move_next();
         if !iter.has_next() {
-            assert_ne!(self.index.checked_add(1), None);
+            debug_assert_ne!(self.index.checked_add(1), None);
             self.index += 1;
         }
     }
@@ -50,9 +50,9 @@ impl ResetIter for MBruteRangeIter<'_> {
     }
 
     fn peek<'a>(&'a self) -> Self::Item<'a> {
-        assert!(self.iters.get(self.index).is_some());
+        debug_assert!(self.iters.get(self.index).is_some());
         let iter = &self.iters[self.index];
-        assert!(iter.has_next());
+        debug_assert!(iter.has_next());
         iter.peek()
     }
 

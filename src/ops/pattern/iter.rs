@@ -39,9 +39,9 @@ impl ResetIter for PatternIter<'_> {
             Self::MRange(iter) => iter.move_next(),
             Self::Group(iters) => {
                 for i in (0..iters.len()).rev() {
-                    assert!(iters.get(i).is_some());
+                    debug_assert!(iters.get(i).is_some());
                     let iter = &mut iters[i];
-                    assert!(iter.has_next());
+                    debug_assert!(iter.has_next());
                     iter.move_next();
                     if iter.has_next() {
                         break;
@@ -56,12 +56,12 @@ impl ResetIter for PatternIter<'_> {
                     *length = 1;
                     return;
                 }
-                assert!(*length <= iters.len());
+                debug_assert!(*length <= iters.len());
                 let start = iters.len() - *length;
                 for i in (start..iters.len()).rev() {
-                    assert!(iters.get(i).is_some());
+                    debug_assert!(iters.get(i).is_some());
                     let iter = &mut iters[i];
-                    assert!(iter.has_next());
+                    debug_assert!(iter.has_next());
                     iter.move_next();
                     if iter.has_next() {
                         break;
@@ -71,7 +71,7 @@ impl ResetIter for PatternIter<'_> {
                     }
                 }
 
-                assert!(iters.get(start).is_some());
+                debug_assert!(iters.get(start).is_some());
 
                 if !iters[start].has_next() {
                     *length += 1;
@@ -92,29 +92,29 @@ impl ResetIter for PatternIter<'_> {
     fn peek<'a>(&'a self) -> Self::Item<'a> {
         match self {
             Self::Range(iter) => {
-                assert!(iter.has_next());
+                debug_assert!(iter.has_next());
                 iter.peek().to_string()
             }
             Self::MRange(iter) => {
-                assert!(iter.has_next());
+                debug_assert!(iter.has_next());
                 iter.peek().to_string()
             }
             Self::Group(iters) => {
                 let mut result = String::new();
                 for iter in iters.iter() {
-                    assert!(iter.has_next());
+                    debug_assert!(iter.has_next());
                     result.push_str(iter.peek().as_str())
                 }
                 result
             }
             Self::Length(iters, length, _) => {
                 let mut result = String::new();
-                assert!(*length <= iters.len());
+                debug_assert!(*length <= iters.len());
                 let start = iters.len() - *length;
                 for i in start..iters.len() {
-                    assert!(iters.get(i as usize).is_some());
+                    debug_assert!(iters.get(i as usize).is_some());
                     let iter = &iters[i as usize];
-                    assert!(iter.has_next());
+                    debug_assert!(iter.has_next());
                     result.push_str(iter.peek().as_str())
                 }
                 result
