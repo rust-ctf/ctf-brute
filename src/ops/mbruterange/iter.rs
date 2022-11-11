@@ -19,7 +19,6 @@ impl MBruteRange {
     pub fn iter(&self) -> MBruteRangeIter {
         let iters: Vec<BruteRangeIter> = self.ranges.iter().map(|r| r.iter()).collect();
         MBruteRangeIter {
-            mrange: &self,
             index: 0,
             iters,
         }

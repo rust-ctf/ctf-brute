@@ -1,6 +1,4 @@
 use nonempty::{nonempty, NonEmpty};
-use std::iter::Flatten;
-
 mod constant;
 mod iter;
 mod merge;
@@ -14,7 +12,6 @@ pub struct MBruteRange {
 
 #[derive(Clone, Debug)]
 pub struct MBruteRangeIter<'a> {
-    pub(crate) mrange: &'a MBruteRange,
     pub(crate) index: usize,
     pub(crate) iters: Vec<BruteRangeIter<'a>>,
 }
