@@ -20,17 +20,23 @@ impl ResetIter for BruteRangeIter<'_> {
         self.index <= self.end && self.index <= 0x10FFFFFF
     }
 
-    fn get_next<'a>(&'a mut self) -> Self::Item<'a> {
-        assert_ne!(char::from_u32(self.index), None);
+    fn move_next<'a>(&'a mut self) {
         assert_ne!(self.index.checked_add(1), None);
-
-        let chr = unsafe { char::from_u32_unchecked(self.index) };
-
         self.index += 1;
         if self.index == 0xD800 {
             self.index += 0xE000 - 0xD800;
         }
-        chr
+    }
+
+    fn get_next<'a>(&'a mut self) -> Self::Item<'a> {
+        let value = self.peek();
+        self.move_next();
+        value
+    }
+
+    fn peek<'a>(&'a self) -> Self::Item<'a> {
+        assert_ne!(char::from_u32(self.index), None);
+        unsafe { char::from_u32_unchecked(self.index) }
     }
 
     fn reset<'a>(&'a mut self) {

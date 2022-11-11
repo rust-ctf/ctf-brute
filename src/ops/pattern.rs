@@ -10,7 +10,6 @@ pub enum Pattern {
     //TODO: Send read only references
     Range(BruteRange),
     MRange(MBruteRange),
-    Empty(),
     Group(Vec<Pattern>),
     Length(Box<Pattern>, RangeInclusive<u32>),
 }
@@ -19,9 +18,8 @@ pub enum Pattern {
 pub enum PatternIter<'a> {
     Range(BruteRangeIter<'a>),
     MRange(MBruteRangeIter<'a>),
-    Empty(bool),
-    Group(Vec<Pattern>, Vec<PatternIter<'a>>, Vec<Option<String>>),
-    Length(Vec<PatternIter<'a>>), //Flatten<Map<RangeInclusive<u32>, Fn>>)
+    Group(Vec<PatternIter<'a>>),
+    Length(Vec<PatternIter<'a>>, usize, usize),
 }
 
 impl Pattern {
@@ -36,7 +34,7 @@ impl Pattern {
             Self::Group(patterns) => patterns
                 .iter()
                 .fold(Some(1u128), |b, x| x.len()?.checked_mul(b?)),
-            Self::Empty() => Some(1u128),
+            //Self::Empty() => Some(1u128),
             Self::Length(pattern, range) => {
                 let mut range = range.clone();
                 let pattern_len = pattern.len()?;

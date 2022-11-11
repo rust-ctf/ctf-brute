@@ -1,99 +1,160 @@
 use std::ops::{Range, RangeInclusive};
 
+use itertools::Itertools;
+
+use crate::ops::resetiter::ResetIter;
+
 use super::{Pattern, PatternIter};
 
 impl Iterator for PatternIter<'_> {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if !self.has_next() {
+            return None;
+        }
+        Some(self.get_next())
+    }
+}
+
+impl ResetIter for PatternIter<'_> {
+    //TODO: Return string slice to avoid allocations
+    type Item<'a> = String where
+        Self: 'a;
+
+    fn has_next<'a>(&'a self) -> bool {
         match self {
-            Self::Range(range) => Some(range.next()?.to_string()),
-            Self::MRange(range) => Some(range.next()?.to_string()),
-            Self::Empty(b) => {
-                if *b {
-                    None
-                } else {
-                    *b = true;
-                    Some(String::new())
+            Self::Range(iter) => iter.has_next(),
+            Self::MRange(iter) => iter.has_next(),
+            Self::Group(iters) => iters[0].has_next(),
+            Self::Length(iters, length, _) => {
+                iters.len() != 0 && iters[0].has_next() || *length == 0
+            }
+        }
+    }
+
+    fn move_next<'a>(&'a mut self) {
+        match self {
+            Self::Range(iter) => iter.move_next(),
+            Self::MRange(iter) => iter.move_next(),
+            Self::Group(iters) => {
+                for i in (0..iters.len()).rev() {
+                    assert!(iters.get(i).is_some());
+                    let iter = &mut iters[i];
+                    assert!(iter.has_next());
+                    iter.move_next();
+                    if iter.has_next() {
+                        break;
+                    }
+                    if i != 0 {
+                        iter.reset()
+                    }
                 }
             }
-            Self::Group(patterns, iterators, last) => {
-                todo!()
-                // assert_eq!(patterns.len(), iterators.len());
-                // assert_eq!(iterators.len(), last.len());
-                // let range = Range {
-                //     start: 0,
-                //     end: iterators.len(),
-                // };
-                // let mut next = true;
-                // let mut result = String::new();
-                // for i in range.into_iter().rev() {
-                //     if last[i].is_none() || next {
-                //         let mut next_val = iterators[i].next();
-                //         if i == 0 && next_val.is_none() {
-                //             return None; //End
-                //         }
-                //         if next_val.is_none() {
-                //             iterators[i] = patterns[i].iter();
-                //             next_val = iterators[i].next();
-                //             last[i] = next_val;
-                //         } else {
-                //             next = false;
-                //             last[i] = next_val;
-                //         }
-                //     }
-                //     //Error one of iterators had 0 results (shouldnt be possible)
-                //     if last[i].is_none() {
-                //         return None;
-                //     }
-                //     let res = last[i].as_ref().unwrap();
-                //     result.insert_str(0, res.as_str());
-                //}
-                //Some(result)
+            Self::Length(iters, length, _) => {
+                if *length == 0 {
+                    *length = 1;
+                    return;
+                }
+                assert!(*length <= iters.len());
+                let start = iters.len() - *length;
+                for i in (start..iters.len()).rev() {
+                    assert!(iters.get(i).is_some());
+                    let iter = &mut iters[i];
+                    assert!(iter.has_next());
+                    iter.move_next();
+                    if iter.has_next() {
+                        break;
+                    }
+                    if i != start {
+                        iter.reset()
+                    }
+                }
+
+                assert!(iters.get(start).is_some());
+
+                if !iters[start].has_next() {
+                    *length += 1;
+                    if start != 0 {
+                        iters[start].reset()
+                    }
+                }
             }
-            Self::Length(iteratrs) => loop {
-                if iteratrs.is_empty() {
-                    return None;
+        }
+    }
+
+    fn get_next<'a>(&'a mut self) -> Self::Item<'a> {
+        let value = self.peek();
+        self.move_next();
+        value
+    }
+
+    fn peek<'a>(&'a self) -> Self::Item<'a> {
+        match self {
+            Self::Range(iter) => {
+                assert!(iter.has_next());
+                iter.peek().to_string()
+            }
+            Self::MRange(iter) => {
+                assert!(iter.has_next());
+                iter.peek().to_string()
+            }
+            Self::Group(iters) => {
+                let mut result = String::new();
+                for iter in iters.iter() {
+                    assert!(iter.has_next());
+                    result.push_str(iter.peek().as_str())
                 }
-                let next = iteratrs[0].next();
-                if next.is_none() {
-                    iteratrs.remove(0);
-                    continue;
+                result
+            }
+            Self::Length(iters, length, _) => {
+                let mut result = String::new();
+                assert!(*length <= iters.len());
+                let start = iters.len() - *length;
+                for i in start..iters.len() {
+                    assert!(iters.get(i as usize).is_some());
+                    let iter = &iters[i as usize];
+                    assert!(iter.has_next());
+                    result.push_str(iter.peek().as_str())
                 }
-                return next;
-            },
+                result
+            }
+        }
+    }
+
+    fn reset<'a>(&'a mut self) {
+        match self {
+            Self::Range(iter) => {
+                iter.reset();
+            }
+            Self::MRange(iter) => {
+                iter.reset();
+            }
+            Self::Group(iters) => {
+                iters.iter_mut().for_each(|i| i.reset());
+            }
+            Self::Length(iters, length, start_length) => {
+                iters.iter_mut().for_each(|i| i.reset());
+                *length = *start_length;
+            }
         }
     }
 }
 
 impl Pattern {
     pub fn iter(&self) -> PatternIter {
-        match &self {
+        match self {
             Self::Range(range) => PatternIter::Range(range.iter()),
             Self::MRange(range) => PatternIter::MRange(range.iter()),
-            Self::Group(patterns) => PatternIter::Group(
-                patterns.clone(),
-                patterns.iter().map(Pattern::iter).collect(),
-                patterns.iter().map(|_| None).collect(),
-            ),
-            Self::Length(pattern, range) => {
-                // let patterns: Vec<PatternIter> = range
-                //     .clone()
-                //     .into_iter()
-                //     .map(|i| {
-                //         if i == 0 {
-                //             return Self::Empty().iter();
-                //         }
-                //         let patterns: Vec<Self> = RangeInclusive::new(1, i)
-                //             .map(|_| *pattern.clone())
-                //             .collect();
-                //         Self::Group(patterns).iter()
-                //     })
-                //     .collect();
-                // PatternIter::Length(patterns)
-                todo!()
+            Self::Group(patterns) => {
+                PatternIter::Group(patterns.iter().map(|p| p.iter()).collect())
             }
-            Self::Empty() => PatternIter::Empty(false),
+            Self::Length(pattern, range) => {
+                let max_len = *range.end();
+                let start = *range.start();
+                let iters = (0..max_len).into_iter().map(|_| pattern.iter()).collect();
+                PatternIter::Length(iters, start as usize, start as usize)
+            }
         }
     }
 }
