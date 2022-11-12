@@ -38,14 +38,25 @@ impl Pattern {
 
     unsafe fn nth_unchecked<'a>(&self, index: u128, buffer: &'a mut String) -> &'a str {
         match self {
-            Pattern::Range{ range, size} => buffer.push(range.nth_unchecked(index as u32)),
-            Pattern::MRange{range, size} => buffer.push(range.nth_unchecked(index as u32)),
+            Pattern::Range{ range, size} =>{
+                debug_assert!(u32::try_from(index).is_ok());
+                debug_assert!(range.nth(index as u32).is_some());
+                buffer.push(range.nth_unchecked(index as u32))
+            } ,
+            Pattern::MRange{range, size} =>
+            {
+                debug_assert!(u32::try_from(index).is_ok());
+                debug_assert!(range.nth(index as u32).is_some());
+                buffer.push(range.nth_unchecked(index as u32))
+            } 
             Pattern::Group{patterns, size, width} => {
                 let mut index = index;
-                for i in (0..patterns.len()) {
+                for i in 0..patterns.len() {
                     let pattern = &patterns[i];
+                    debug_assert!(pattern.len().is_some());
                     let size = pattern.len().expect("Iterator is too large");
                     let new_index = index % size;
+                    debug_assert!(pattern.nth(new_index, &mut buffer.clone()).is_some());
                     pattern.nth_unchecked(new_index, buffer);
                     index /= size;
                 }
@@ -57,12 +68,16 @@ impl Pattern {
                         Ok(index) => index,
                         Err(index) => index - 1,
                     };
+                    debug_assert!(u32::try_from(range_index).is_ok());
+                    debug_assert!(indexes.get(range_index).is_some());
                     let len = *range.start() + (range_index as u32);
                     let mut index = index - indexes[range_index];
                     for _ in 0..len {
                         let pattern = pattern;
+                        debug_assert!(pattern.len().is_some());
                         let size = pattern.len().expect("Pattern length is larger than 2^128");
                         let new_index = index % size;
+                        debug_assert!(pattern.nth(new_index, &mut buffer.clone()).is_some());
                         pattern.nth_unchecked(new_index, buffer);
                         index /= size;
                     }
@@ -70,10 +85,57 @@ impl Pattern {
                 else {
                     panic!("Pattern length is larger than 2^128")
                 }
-                
             }
         }
         buffer.as_str()
+    }
+
+    fn nth<'a>(&self, index: u128, buffer: &'a mut String) -> Option<&'a str> {
+        match self {
+            Pattern::Range{ range, size} => {
+                let chr = range.nth(u32::try_from(index).ok()?)?;
+                buffer.push(chr);
+            },
+            Pattern::MRange{range, size} => {
+                let chr = range.nth(u32::try_from(index).ok()?)?;
+                buffer.push(chr);
+            },
+            Pattern::Group{patterns, size, width} => {
+                let mut index = index;
+                for i in 0..patterns.len() {
+                    let pattern = patterns.get(i as usize)?;
+                    debug_assert!(pattern.len().is_some());
+                    let size = pattern.len()?;
+                    let new_index = u128::checked_rem(index,size)?;
+                    pattern.nth(new_index, buffer)?;
+                    index = u128::checked_div(index,size)?;
+                };
+            }
+            Pattern::Length{pattern, range, size, indexes, max_width} => {
+                if let Some(indexes) = indexes
+                {
+                    let range_index = match indexes.binary_search(&index) {
+                        Ok(index) => index,
+                        Err(index) => index - 1,
+                    };
+                    debug_assert!(u32::try_from(range_index).is_ok());
+                    debug_assert!(indexes.get(range_index).is_some());
+                    let len = *range.start() + (range_index as u32);
+                    let mut index = index - indexes[range_index];
+                    for _ in 0..len {
+                        let pattern = pattern;
+                        let size = pattern.len()?;
+                        let new_index = u128::checked_rem(index,size)?;
+                        pattern.nth(new_index, buffer)?;
+                        index = u128::checked_div(index,size)?;
+                    }
+                }
+                else {
+                    return None
+                }
+            }
+        }
+        Some(buffer.as_str())
     }
 }
 
