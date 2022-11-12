@@ -52,6 +52,29 @@ impl BruteRange {
             index: self.start as u32,
         }
     }
+
+    pub fn nth(&self, index: u32) -> Option<char> {
+        let mut index = u32::checked_add(self.start as u32, index)?;
+        if index > 0xd7ff {
+            index = u32::checked_add(index, 0xE000 - 0xD800)?;
+        }
+        if index > (self.end as u32) {
+            return None;
+        }
+        char::from_u32(index)
+    }
+
+    pub unsafe fn nth_unchecked(&self, index: u32) -> char {
+        debug_assert!(u32::checked_add(self.start as u32, index).is_some());
+        let mut index = (self.start as u32) + index;
+        if index > 0xd7ff {
+            debug_assert!(u32::checked_add(index, 0xE000 - 0xD800).is_some());
+            index += 0xE000 - 0xD800;
+        }
+        debug_assert!(index <= (self.end as u32));
+        debug_assert_ne!(char::from_u32(index), None);
+        char::from_u32_unchecked(index)
+    }
 }
 
 // impl <'a> IntoIterator for &'a BruteRange {
@@ -119,5 +142,66 @@ mod tests {
             .map(|x| x.unwrap())
             .collect();
         assert_eq!(result, valid_chars);
+    }
+
+    #[test]
+    fn test_nth_single() {
+        let range = BruteRange::from_range('0'..='0');
+        assert_eq!(range.nth(0), Some('0'));
+        assert_eq!(range.nth(1), None);
+        assert_eq!(unsafe { range.nth_unchecked(0) }, '0');
+    }
+
+    #[test]
+    fn test_nth_multi() {
+        let range = BruteRange::from_range('a'..='d');
+        assert_eq!(range.nth(0), Some('a'));
+        assert_eq!(range.nth(1), Some('b'));
+        assert_eq!(range.nth(2), Some('c'));
+        assert_eq!(range.nth(3), Some('d'));
+        assert_eq!(range.nth(4), None);
+        assert_eq!(unsafe { range.nth_unchecked(0) }, 'a');
+        assert_eq!(unsafe { range.nth_unchecked(1) }, 'b');
+        assert_eq!(unsafe { range.nth_unchecked(2) }, 'c');
+        assert_eq!(unsafe { range.nth_unchecked(3) }, 'd');
+    }
+
+    #[test]
+    fn test_nth_multi_reversed() {
+        let range = BruteRange::from_range('d'..='a');
+        assert_eq!(range.nth(0), Some('a'));
+        assert_eq!(range.nth(1), Some('b'));
+        assert_eq!(range.nth(2), Some('c'));
+        assert_eq!(range.nth(3), Some('d'));
+        assert_eq!(range.nth(4), None);
+        assert_eq!(unsafe { range.nth_unchecked(0) }, 'a');
+        assert_eq!(unsafe { range.nth_unchecked(1) }, 'b');
+        assert_eq!(unsafe { range.nth_unchecked(2) }, 'c');
+        assert_eq!(unsafe { range.nth_unchecked(3) }, 'd');
+    }
+
+    #[test]
+    fn test_nth_invalid_chars_in_bound() {
+        let range = BruteRange::from_range('\u{d7fe}'..='\u{e001}');
+        assert_eq!(range.nth(0), Some('\u{d7fe}'));
+        assert_eq!(range.nth(1), Some('\u{d7ff}'));
+        assert_eq!(range.nth(2), Some('\u{e000}'));
+        assert_eq!(range.nth(3), Some('\u{e001}'));
+        assert_eq!(range.nth(4), None);
+        assert_eq!(unsafe { range.nth_unchecked(0) }, '\u{d7fe}');
+        assert_eq!(unsafe { range.nth_unchecked(1) }, '\u{d7ff}');
+        assert_eq!(unsafe { range.nth_unchecked(2) }, '\u{e000}');
+        assert_eq!(unsafe { range.nth_unchecked(3) }, '\u{e001}');
+    }
+
+    #[test]
+    fn test_nth_all() {
+        let range = BruteRange::from_range('\u{0}'..='\u{10ffff}');
+        let result: Vec<char> = range.iter().collect();
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i]);
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 }

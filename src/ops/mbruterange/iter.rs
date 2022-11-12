@@ -18,10 +18,35 @@ impl Iterator for MBruteRangeIter<'_> {
 impl MBruteRange {
     pub fn iter(&self) -> MBruteRangeIter {
         let iters: Vec<BruteRangeIter> = self.ranges.iter().map(|r| r.iter()).collect();
-        MBruteRangeIter {
-            index: 0,
-            iters,
-        }
+        MBruteRangeIter { index: 0, iters }
+    }
+
+    pub fn nth(&self, index: u32) -> Option<char> {
+        let range_index = match self.indexes.binary_search(&index) {
+            Ok(index) => index,
+            //If the value is not found then Result::Err is returned,
+            //containing the index where a matching element could be inserted
+            //while maintaining sorted order.
+            Err(index) => usize::checked_sub(index, 1)?,
+        };
+        let start = self.indexes.get(range_index)?;
+        let range = self.ranges.get(range_index)?;
+        let index = u32::checked_sub(index, *start)?;
+        range.nth(index)
+    }
+
+    pub unsafe fn nth_unchecked(&self, index: u32) -> char {
+        let range_index = match self.indexes.binary_search(&index) {
+            Ok(index) => index,
+            //If the value is not found then Result::Err is returned,
+            //containing the index where a matching element could be inserted
+            //while maintaining sorted order.
+            Err(index) => index - 1,
+        };
+        let start = self.indexes[range_index];
+        let range = self.ranges[range_index];
+        let index = index - start;
+        range.nth_unchecked(index)
     }
 }
 
@@ -80,303 +105,400 @@ mod tests {
     use nonempty::nonempty;
 
     #[test]
-    fn test_iter_single() {
-        let result: Vec<char> =
-            MBruteRange::from_ranges(nonempty![BruteRange::from_range('a'..='c')])
-                .into_iter()
-                .collect();
+    fn test_multi_single() {
+        let range = MBruteRange::from_ranges(nonempty![BruteRange::from_range('a'..='c')]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['a', 'b', 'c']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_multi() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_multi() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('0'..='3'),
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('b'..='d')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', 'A', 'B', 'C', 'b', 'c', 'd']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_multi_sort() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_multi_sort() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('b'..='d'),
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('0'..='3')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', 'A', 'B', 'C', 'b', 'c', 'd']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_single_reversed1() {
-        let result: Vec<char> =
-            MBruteRange::from_ranges(nonempty![BruteRange::from_range('d'..='a')])
-                .into_iter()
-                .collect();
+    fn test_multi_single_reversed1() {
+        let range = MBruteRange::from_ranges(nonempty![BruteRange::from_range('d'..='a')]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['a', 'b', 'c', 'd']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_multi_reversed2() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_multi_reversed2() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('d'..='a'),
             BruteRange::from_range('D'..='A'),
             BruteRange::from_range('3'..='0')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', 'A', 'B', 'C', 'D', 'a', 'b', 'c', 'd']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_one_reversed2() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_one_reversed2() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('3'..='0'),
             BruteRange::from_range('A'..='D'),
             BruteRange::from_range('a'..='d')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', 'A', 'B', 'C', 'D', 'a', 'b', 'c', 'd']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_one_reversed3() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_one_reversed3() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('0'..='3'),
             BruteRange::from_range('D'..='A'),
             BruteRange::from_range('a'..='d')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', 'A', 'B', 'C', 'D', 'a', 'b', 'c', 'd']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_one_reversed4() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_one_reversed4() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('0'..='3'),
             BruteRange::from_range('A'..='D'),
             BruteRange::from_range('d'..='a')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['0', '1', '2', '3', 'A', 'B', 'C', 'D', 'a', 'b', 'c', 'd']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_single_overlap() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_single_overlap() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('a'..='d'),
             BruteRange::from_range('b'..='f')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['a', 'b', 'c', 'd', 'e', 'f']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_under_overlap() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_under_overlap() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('a'..='d'),
             BruteRange::from_range('c'..='f'),
             BruteRange::from_range('b'..='d')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['a', 'b', 'c', 'd', 'e', 'f']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_multi_overlap() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_multi_overlap() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='D'),
             BruteRange::from_range('B'..='E'),
             BruteRange::from_range('a'..='d'),
             BruteRange::from_range('b'..='e')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(
             result,
             vec!['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e']
         );
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_overlap_start() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_overlap_start() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('A'..='E')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_overlap_end() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_overlap_end() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('C'..='E')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_overlap_end2() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_overlap_end2() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('C'..='E'),
             BruteRange::from_range('E'..='G')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_allongside() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_allongside() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('D'..='E')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_multi_allongside() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_multi_allongside() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('D'..='E'),
             BruteRange::from_range('F'..='H')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_not_allongside() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_not_allongside() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='B'),
             BruteRange::from_range('D'..='E')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_char() {
-        let result: Vec<char> =
-            MBruteRange::from_ranges(nonempty![BruteRange::from_range('1'..='1')])
-                .into_iter()
-                .collect();
+    fn test_multi_char() {
+        let range = MBruteRange::from_ranges(nonempty![BruteRange::from_range('1'..='1')]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['1']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_chars() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_chars() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('a'..='a')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'a']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_chars_allongside() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_chars_allongside() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('B'..='B')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_chars_overlap() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_chars_overlap() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('A'..='A')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_range_char_overlap() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_range_char_overlap() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='D'),
             BruteRange::from_range('D'..='D')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_range_char_allongside() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_range_char_allongside() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='D'),
             BruteRange::from_range('E'..='E')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_char_range_overlap() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_char_range_overlap() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('A'..='D')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 
     #[test]
-    fn test_iter_char_range_allongside() {
-        let result: Vec<char> = MBruteRange::from_ranges(nonempty![
+    fn test_multi_char_range_allongside() {
+        let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('B'..='E')
-        ])
-        .into_iter()
-        .collect();
+        ]);
+        let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
     }
 }
