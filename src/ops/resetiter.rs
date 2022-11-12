@@ -2,6 +2,7 @@ pub trait ResetIter {
     type Item<'a>
     where
         Self: 'a;
+
     fn has_next<'a>(&'a self) -> bool;
 
     fn move_next<'a>(&'a mut self);

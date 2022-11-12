@@ -1,3 +1,4 @@
+use core::panic;
 use std::ops::{Range, RangeInclusive};
 
 use itertools::Itertools;
@@ -6,20 +7,21 @@ use crate::ops::resetiter::ResetIter;
 
 use super::{Pattern, PatternIter};
 
-use rayon::{prelude::*};
+use rayon::prelude::*;
 
-impl Pattern
-{
-    pub fn par_iter(&self) -> rayon::iter::Map<rayon::range::Iter<u128>, impl Fn(u128) -> String + '_>
-    {
+impl Pattern {
+    pub fn par_iter(
+        &self,
+    ) -> rayon::iter::Map<rayon::range::Iter<u128>, impl Fn(u128) -> String + '_> {
         let size = self.len().expect("Iterator is too large");
         let iter = self;
-        (0..size).into_par_iter().map(move |i|
-            {
-                let mut buffer = String::new();
-                unsafe { _ =  iter.nth_unchecked(i, &mut buffer); }
-                buffer
-            })
+        (0..size).into_par_iter().map(move |i| {
+            let mut buffer = String::new();
+            unsafe {
+                _ = iter.nth_unchecked(i, &mut buffer);
+            }
+            buffer
+        })
     }
 
     // pub fn iter(&self) -> std::iter::Map<Range<u128>, impl Fn(u128) -> String + '_>
@@ -34,17 +36,13 @@ impl Pattern
     //         })
     // }
 
-    unsafe fn nth_unchecked<'a>(&self, index: u128, buffer: &'a mut String) -> &'a str
-    {
-        match self
-        {
-            Pattern::Range(range) => buffer.push(range.nth_unchecked(index as u32)),
-            Pattern::MRange(range) => buffer.push(range.nth_unchecked(index as u32)),
-            Pattern::Group(patterns) =>
-            {
+    unsafe fn nth_unchecked<'a>(&self, index: u128, buffer: &'a mut String) -> &'a str {
+        match self {
+            Pattern::Range{ range, size} => buffer.push(range.nth_unchecked(index as u32)),
+            Pattern::MRange{range, size} => buffer.push(range.nth_unchecked(index as u32)),
+            Pattern::Group{patterns, size, width} => {
                 let mut index = index;
-                for i in (0..patterns.len())
-                {
+                for i in (0..patterns.len()) {
                     let pattern = &patterns[i];
                     let size = pattern.len().expect("Iterator is too large");
                     let new_index = index % size;
@@ -52,22 +50,27 @@ impl Pattern
                     index /= size;
                 }
             }
-            Pattern::Length(pattern, range, indexes) =>
-            {
-                let range_index = match indexes.binary_search(&index) {
-                    Ok(index) => index,
-                    Err(index) => index - 1,
-                };
-                let len = *range.start() + (range_index as u32);
-                let mut index = index - indexes[range_index];
-                for i in 0..len
+            Pattern::Length{pattern, range, size, indexes, max_width} => {
+                if let Some(indexes) = indexes
                 {
-                    let pattern = pattern;
-                    let size = pattern.len().expect("Iterator is too large");
-                    let new_index = index % size;
-                    pattern.nth_unchecked(new_index, buffer);
-                    index /= size;
+                    let range_index = match indexes.binary_search(&index) {
+                        Ok(index) => index,
+                        Err(index) => index - 1,
+                    };
+                    let len = *range.start() + (range_index as u32);
+                    let mut index = index - indexes[range_index];
+                    for _ in 0..len {
+                        let pattern = pattern;
+                        let size = pattern.len().expect("Pattern length is larger than 2^128");
+                        let new_index = index % size;
+                        pattern.nth_unchecked(new_index, buffer);
+                        index /= size;
+                    }
                 }
+                else {
+                    panic!("Pattern length is larger than 2^128")
+                }
+                
             }
         }
         buffer.as_str()
@@ -172,7 +175,7 @@ impl Pattern
 //                     pattern.peek_buffered(buffer);
 //                     *init = true;
 //                 }
-                
+
 //                 buffer.as_str()
 //             }
 //            _ => panic!("Calling peek from non base pattern is not allowed")

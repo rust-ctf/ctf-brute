@@ -121,20 +121,14 @@ fn parse_group(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
     let mut patterns: VecDeque<Pattern> = VecDeque::new();
     loop {
         let pattern = match lex.next() {
-            Some(Token::Char(c)) => Pattern::Range(BruteRange::from_char(c)),
-            Some(Token::Range((l, r))) => Pattern::Range(BruteRange::new(l, r)),
+            Some(Token::Char(c)) => Pattern::new_range(BruteRange::from_char(c)),
+            Some(Token::Range((l, r))) => Pattern::new_range(BruteRange::new(l, r)),
             Some(Token::Escape(e)) => pattern_from_escape(e)?,
             Some(Token::LParen) => parse_group(lex, &Some(Token::RParen))?,
             Some(Token::LColon) => parse_range(lex, &Some(Token::RColon))?,
             Some(Token::Length((l, r))) => {
                 let last = patterns.pop_back()?;
-                let len = last.len()?;
-                let mut indexes = Vec::with_capacity((r - l) as usize);
-                _ = (l..=r).into_iter().fold(0u128, |s, _| {
-                    indexes.push(s);
-                    s + len
-                });
-                Pattern::Length(Box::new(last), RangeInclusive::new(l, r), indexes)
+                Pattern::new_length(last, RangeInclusive::new(l, r))
             }
             t => {
                 if end.eq(&t) {
@@ -149,7 +143,7 @@ fn parse_group(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
     match patterns.len() {
         0 => None,
         1 => patterns.pop(),
-        _ => Some(Pattern::Group(patterns)),
+        _ => Some(Pattern::new_group(patterns)),
     }
 }
 
@@ -175,8 +169,8 @@ fn parse_range(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
     let mut patterns = Vec::from(patterns);
     match patterns.len() {
         0 => None,
-        1 => Some(Pattern::Range(patterns.pop()?)),
-        _ => Some(Pattern::MRange(MBruteRange::from_ranges(
+        1 => Some(Pattern::new_range(patterns.pop()?)),
+        _ => Some(Pattern::new_multi_range(MBruteRange::from_ranges(
             NonEmpty::from_vec(patterns)?,
         ))),
     }
@@ -184,20 +178,20 @@ fn parse_range(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
 
 fn pattern_from_escape(c: char) -> Option<Pattern> {
     match c {
-        'w' => Some(Pattern::Range(BruteRange::RANGE_LETTERS_LOWERCASE)),
-        'W' => Some(Pattern::Range(BruteRange::RANGE_LETTERS_UPPERCASE)),
-        'd' => Some(Pattern::Range(BruteRange::RANGE_NUMBERS)),
-        'U' => Some(Pattern::Range(BruteRange::RANGE_UNICODE)),
-        'a' => Some(Pattern::Range(BruteRange::RANGE_ASCII)),
-        'l' => Some(Pattern::MRange(MBruteRange::letters())),
-        'h' => Some(Pattern::MRange(MBruteRange::hex_lower())),
-        'H' => Some(Pattern::MRange(MBruteRange::hex_upper())),
-        'X' => Some(Pattern::MRange(MBruteRange::hex())),
-        'p' => Some(Pattern::MRange(MBruteRange::punct())),
-        'n' => Some(Pattern::MRange(MBruteRange::alphanum_lower())),
-        'N' => Some(Pattern::MRange(MBruteRange::alphanum_upper())),
-        'm' => Some(Pattern::MRange(MBruteRange::alphanum())),
-        'b' => Some(Pattern::MRange(MBruteRange::brute())),
+        'w' => Some(Pattern::new_range(BruteRange::RANGE_LETTERS_LOWERCASE)),
+        'W' => Some(Pattern::new_range(BruteRange::RANGE_LETTERS_UPPERCASE)),
+        'd' => Some(Pattern::new_range(BruteRange::RANGE_NUMBERS)),
+        'U' => Some(Pattern::new_range(BruteRange::RANGE_UNICODE)),
+        'a' => Some(Pattern::new_range(BruteRange::RANGE_ASCII)),
+        'l' => Some(Pattern::new_multi_range(MBruteRange::letters())),
+        'h' => Some(Pattern::new_multi_range(MBruteRange::hex_lower())),
+        'H' => Some(Pattern::new_multi_range(MBruteRange::hex_upper())),
+        'X' => Some(Pattern::new_multi_range(MBruteRange::hex())),
+        'p' => Some(Pattern::new_multi_range(MBruteRange::punct())),
+        'n' => Some(Pattern::new_multi_range(MBruteRange::alphanum_lower())),
+        'N' => Some(Pattern::new_multi_range(MBruteRange::alphanum_upper())),
+        'm' => Some(Pattern::new_multi_range(MBruteRange::alphanum())),
+        'b' => Some(Pattern::new_multi_range(MBruteRange::brute())),
         _ => None,
     }
 }
