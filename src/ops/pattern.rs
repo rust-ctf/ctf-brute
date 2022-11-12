@@ -1,9 +1,19 @@
+
 use std::ops::RangeInclusive;
 
 pub mod iter;
 mod parser;
 
-use super::{bruterange::BruteRangeIter, mbruterange::MBruteRangeIter, BruteRange, MBruteRange};
+
+
+use std::ops::{Range};
+
+use itertools::Itertools;
+
+use crate::ops::resetiter::ResetIter;
+
+use super::bruterange::{BruteRange, BruteRangeIter};
+use super::mbruterange::{MBruteRangeIter, MBruteRange};
 
 #[derive(Clone, Debug)]
 pub enum Pattern {
@@ -11,16 +21,16 @@ pub enum Pattern {
     Range(BruteRange),
     MRange(MBruteRange),
     Group(Vec<Pattern>),
-    Length(Box<Pattern>, RangeInclusive<u32>),
+    Length(Box<Pattern>, RangeInclusive<u32>, Vec<u128>),
 }
 
 #[derive(Clone, Debug)]
-pub enum PatternIter<'a> {
-    Base(Box<PatternIter<'a>>, String, bool),
-    Range(BruteRangeIter<'a>),
-    MRange(MBruteRangeIter<'a>),
-    Group(Vec<PatternIter<'a>>),
-    Length(Vec<PatternIter<'a>>, usize, usize),
+pub enum PatternIter<'st, 'bf> {
+    Base(Box<PatternIter<'st, 'bf>>, &'bf String, bool),
+    Range(BruteRangeIter<'st>),
+    MRange(MBruteRangeIter<'st>),
+    Group(Vec<PatternIter<'st, 'bf>>),
+    Length(Vec<PatternIter<'st, 'bf>>, usize, usize),
 }
 
 impl Pattern {
@@ -36,7 +46,7 @@ impl Pattern {
                 .iter()
                 .fold(Some(1u128), |b, x| x.len()?.checked_mul(b?)),
             //Self::Empty() => Some(1u128),
-            Self::Length(pattern, range) => {
+            Self::Length(pattern, range, _) => {
                 let mut range = range.clone();
                 let pattern_len = pattern.len()?;
                 let first = range.next()?;
@@ -51,3 +61,4 @@ impl Pattern {
         }
     }
 }
+

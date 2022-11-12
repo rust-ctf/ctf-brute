@@ -15,6 +15,7 @@ readme = "README.md"
 itertools = "0.10.5"
 logos = "0.12.1"
 nonempty = "0.8.0"
+rayon = "1.5.3"
 
 [dev-dependencies]
 criterion = "0.4.0"

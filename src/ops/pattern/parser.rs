@@ -128,7 +128,13 @@ fn parse_group(lex: &mut Lexer<Token>, end: &Option<Token>) -> Option<Pattern> {
             Some(Token::LColon) => parse_range(lex, &Some(Token::RColon))?,
             Some(Token::Length((l, r))) => {
                 let last = patterns.pop_back()?;
-                Pattern::Length(Box::new(last), RangeInclusive::new(l, r))
+                let len = last.len()?;
+                let mut indexes = Vec::with_capacity((r - l) as usize);
+                _ = (l..=r).into_iter().fold(0u128, |s, _| {
+                    indexes.push(s);
+                    s + len
+                });
+                Pattern::Length(Box::new(last), RangeInclusive::new(l, r), indexes)
             }
             t => {
                 if end.eq(&t) {
