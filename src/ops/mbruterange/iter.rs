@@ -73,9 +73,9 @@ impl ResetIter for MBruteRangeIter<'_> {
         value
     }
 
-    fn peek<'a>(&'a self) -> Self::Item<'a> {
+    fn peek<'a>(&'a mut self) -> Self::Item<'a> {
         debug_assert!(self.iters.get(self.index).is_some());
-        let iter = &self.iters[self.index];
+        let iter = &mut self.iters[self.index];
         debug_assert!(iter.has_next());
         iter.peek()
     }

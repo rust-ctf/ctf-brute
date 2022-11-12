@@ -6,24 +6,25 @@ use crate::ops::resetiter::ResetIter;
 
 use super::{Pattern, PatternIter};
 
-impl Iterator for PatternIter<'_> {
-    type Item = String;
+// impl<'a> Iterator for &'a PatternIter<'_> {
+//     type Item = &'a str;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        if !self.has_next() {
-            return None;
-        }
-        Some(self.get_next())
-    }
-}
+//     fn next(&mut self) -> Option<Self::Item> {
+//         if !self.has_next() {
+//             return None;
+//         }
+//         Some(self.get_next())
+//     }
+// }
 
 impl ResetIter for PatternIter<'_> {
     //TODO: Return string slice to avoid allocations
-    type Item<'a> = String where
+    type Item<'a> = &'a str where
         Self: 'a;
 
     fn has_next<'a>(&'a self) -> bool {
         match self {
+            Self::Base(pattern, _, _) => pattern.has_next(),
             Self::Range(iter) => iter.has_next(),
             Self::MRange(iter) => iter.has_next(),
             Self::Group(iters) => iters[0].has_next(),
@@ -35,6 +36,10 @@ impl ResetIter for PatternIter<'_> {
 
     fn move_next<'a>(&'a mut self) {
         match self {
+            Self::Base(pattern, buffer, init) => {
+                *init = false;
+                pattern.move_next();
+            }
             Self::Range(iter) => iter.move_next(),
             Self::MRange(iter) => iter.move_next(),
             Self::Group(iters) => {
@@ -85,45 +90,37 @@ impl ResetIter for PatternIter<'_> {
 
     fn get_next<'a>(&'a mut self) -> Self::Item<'a> {
         let value = self.peek();
-        self.move_next();
+        // unsafe{
+        //     let  this = self as &mut Self;
+        //     this.move_next()
+        //  };
         value
     }
 
-    fn peek<'a>(&'a self) -> Self::Item<'a> {
+    fn peek<'a>(&'a mut self) -> Self::Item<'a> {
         match self {
-            Self::Range(iter) => {
-                debug_assert!(iter.has_next());
-                iter.peek().to_string()
-            }
-            Self::MRange(iter) => {
-                debug_assert!(iter.has_next());
-                iter.peek().to_string()
-            }
-            Self::Group(iters) => {
-                let mut result = String::new();
-                for iter in iters.iter() {
-                    debug_assert!(iter.has_next());
-                    result.push_str(iter.peek().as_str())
+            Self::Base(pattern, buffer, init) =>
+            {
+                if !*init
+                {
+                    buffer.clear();
+                    pattern.peek_buffered(buffer);
+                    *init = true;
                 }
-                result
+                
+                buffer.as_str()
             }
-            Self::Length(iters, length, _) => {
-                let mut result = String::new();
-                debug_assert!(*length <= iters.len());
-                let start = iters.len() - *length;
-                for i in start..iters.len() {
-                    debug_assert!(iters.get(i as usize).is_some());
-                    let iter = &iters[i as usize];
-                    debug_assert!(iter.has_next());
-                    result.push_str(iter.peek().as_str())
-                }
-                result
-            }
+           _ => panic!("Calling peek from non base pattern is not allowed")
         }
     }
 
     fn reset<'a>(&'a mut self) {
         match self {
+            Self::Base(pattern, buffer , init) => {
+                pattern.reset();
+                *init = false;
+                buffer.clear();
+            }
             Self::Range(iter) => {
                 iter.reset();
             }
@@ -136,6 +133,42 @@ impl ResetIter for PatternIter<'_> {
             Self::Length(iters, length, start_length) => {
                 iters.iter_mut().for_each(|i| i.reset());
                 *length = *start_length;
+            }
+        }
+    }
+}
+
+impl PatternIter<'_>
+{
+    fn peek_buffered<'a>(&'a mut self, buffer: &mut String)
+    {
+        match self {
+            Self::Base(pattern, _, _) =>
+            {
+                pattern.peek_buffered(buffer);
+            }
+            Self::Range(iter) => {
+                debug_assert!(iter.has_next());
+                buffer.push(iter.peek())
+            }
+            Self::MRange(iter) => {
+                debug_assert!(iter.has_next());
+                buffer.push(iter.peek())
+            }
+            Self::Group(iters) => {
+                for iter in iters.iter_mut() {
+                    iter.peek_buffered(buffer);
+                }
+            }
+            Self::Length(iters, length, _) => {
+                debug_assert!(*length <= iters.len());
+                let start = iters.len() - *length;
+                for i in start..iters.len() {
+                    debug_assert!(iters.get(i as usize).is_some());
+                    let iter = &mut iters[i as usize];
+                    debug_assert!(iter.has_next());
+                    iter.peek_buffered(buffer);
+                }
             }
         }
     }

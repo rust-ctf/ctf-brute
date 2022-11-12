@@ -6,7 +6,7 @@ pub trait ResetIter {
 
     fn move_next<'a>(&'a mut self);
 
-    fn peek<'a>(&'a self) -> Self::Item<'a>;
+    fn peek<'a>(&'a mut self) -> Self::Item<'a>;
 
     fn get_next<'a>(&'a mut self) -> Self::Item<'a>;
 

@@ -34,7 +34,7 @@ impl ResetIter for BruteRangeIter<'_> {
         value
     }
 
-    fn peek<'a>(&'a self) -> Self::Item<'a> {
+    fn peek<'a>(&'a mut self) -> Self::Item<'a> {
         debug_assert_ne!(char::from_u32(self.index), None);
         unsafe { char::from_u32_unchecked(self.index) }
     }

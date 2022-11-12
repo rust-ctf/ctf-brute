@@ -16,6 +16,7 @@ pub enum Pattern {
 
 #[derive(Clone, Debug)]
 pub enum PatternIter<'a> {
+    Base(Box<PatternIter<'a>>, String, bool),
     Range(BruteRangeIter<'a>),
     MRange(MBruteRangeIter<'a>),
     Group(Vec<PatternIter<'a>>),
