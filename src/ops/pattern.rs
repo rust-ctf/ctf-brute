@@ -99,7 +99,22 @@ impl Pattern {
 
     pub fn max_width(&self) -> usize
     {
-        0
+        match self {
+            Self::Range { range, size } => 1usize,
+            Self::MRange { range: _, size } => 1usize,
+            Self::Group {
+                patterns,
+                size,
+                width,
+            } => *width,
+            Self::Length {
+                pattern,
+                range,
+                size,
+                indexes,
+                max_width,
+            } => *max_width,
+        }
     }
 
     pub fn len(&self) -> Option<u128> {
@@ -118,22 +133,6 @@ impl Pattern {
                 indexes,
                 max_width,
             } => *size,
-            // Self::Group(patterns) => patterns
-            //     .iter()
-            //     .fold(Some(1u128), |b, x| x.len()?.checked_mul(b?)),
-            // //Self::Empty() => Some(1u128),
-            // Self::Length(pattern, range, _) => {
-            //     let mut range = range.clone();
-            //     let pattern_len = pattern.len()?;
-            //     let first = range.next()?;
-            //     let mut sum = pattern_len.checked_pow(first)?;
-            //     let mut pow = sum;
-            //     for _ in range {
-            //         pow = pow.checked_mul(pattern_len as u128)?;
-            //         sum = sum.checked_add(pow)?;
-            //     }
-            //     Some(sum)
-            // }
         }
     }
 }
