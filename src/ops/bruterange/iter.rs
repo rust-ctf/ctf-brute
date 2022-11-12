@@ -55,7 +55,7 @@ impl BruteRange {
 
     pub fn nth(&self, index: u32) -> Option<char> {
         let mut index = u32::checked_add(self.start as u32, index)?;
-        if index > 0xd7ff {
+        if self.start <= '\u{d7ff}' && index > 0xd7ff {
             index = u32::checked_add(index, 0xE000 - 0xD800)?;
         }
         if index > (self.end as u32) {
@@ -67,7 +67,7 @@ impl BruteRange {
     pub unsafe fn nth_unchecked(&self, index: u32) -> char {
         debug_assert!(u32::checked_add(self.start as u32, index).is_some());
         let mut index = (self.start as u32) + index;
-        if index > 0xd7ff {
+        if self.start <= '\u{d7ff}' && index > 0xd7ff {
             debug_assert!(u32::checked_add(index, 0xE000 - 0xD800).is_some());
             index += 0xE000 - 0xD800;
         }
@@ -192,6 +192,31 @@ mod tests {
         assert_eq!(unsafe { range.nth_unchecked(1) }, '\u{d7ff}');
         assert_eq!(unsafe { range.nth_unchecked(2) }, '\u{e000}');
         assert_eq!(unsafe { range.nth_unchecked(3) }, '\u{e001}');
+    }
+    #[test]
+    fn test_nth_after_invalid_chars() {
+        let range = BruteRange::from_range('\u{e000}'..='\u{e003}');
+        assert_eq!(range.nth(0), Some('\u{e000}'));
+        assert_eq!(range.nth(1), Some('\u{e001}'));
+        assert_eq!(range.nth(2), Some('\u{e002}'));
+        assert_eq!(range.nth(3), Some('\u{e003}'));
+        assert_eq!(range.nth(4), None);
+        assert_eq!(unsafe { range.nth_unchecked(0) }, '\u{e000}');
+        assert_eq!(unsafe { range.nth_unchecked(1) }, '\u{e001}');
+        assert_eq!(unsafe { range.nth_unchecked(2) }, '\u{e002}');
+        assert_eq!(unsafe { range.nth_unchecked(3) }, '\u{e003}');
+    }
+
+    #[test]
+    fn test_nth_after_invalid_chars2() {
+        let range = BruteRange::from_range('\u{e001}'..='\u{e003}');
+        assert_eq!(range.nth(0), Some('\u{e001}'));
+        assert_eq!(range.nth(1), Some('\u{e002}'));
+        assert_eq!(range.nth(2), Some('\u{e003}'));
+        assert_eq!(range.nth(3), None);
+        assert_eq!(unsafe { range.nth_unchecked(0) }, '\u{e001}');
+        assert_eq!(unsafe { range.nth_unchecked(1) }, '\u{e002}');
+        assert_eq!(unsafe { range.nth_unchecked(2) }, '\u{e003}');
     }
 
     #[test]

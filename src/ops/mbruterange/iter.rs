@@ -102,7 +102,7 @@ impl<'a> IntoIterator for &'a MBruteRange {
 mod tests {
     use super::*;
     use crate::ops::BruteRange;
-    use nonempty::nonempty;
+    use nonempty::{nonempty, NonEmpty};
 
     #[test]
     fn test_multi_single() {
@@ -340,7 +340,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_allongside() {
+    fn test_multi_alongside() {
         let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('D'..='E')
@@ -355,7 +355,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_multi_allongside() {
+    fn test_multi_multi_alongside() {
         let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='C'),
             BruteRange::from_range('D'..='E'),
@@ -371,7 +371,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_not_allongside() {
+    fn test_multi_not_alongside() {
         let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='B'),
             BruteRange::from_range('D'..='E')
@@ -413,7 +413,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_chars_allongside() {
+    fn test_multi_chars_alongside() {
         let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('B'..='B')
@@ -458,7 +458,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_range_char_allongside() {
+    fn test_multi_range_char_alongside() {
         let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='D'),
             BruteRange::from_range('E'..='E')
@@ -488,13 +488,31 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_char_range_allongside() {
+    fn test_multi_char_range_alongside() {
         let range = MBruteRange::from_ranges(nonempty![
             BruteRange::from_range('A'..='A'),
             BruteRange::from_range('B'..='E')
         ]);
         let result: Vec<char> = range.iter().collect();
         assert_eq!(result, vec!['A', 'B', 'C', 'D', 'E']);
+        for i in 0..result.len() {
+            assert_eq!(range.nth(i as u32), Some(result[i]));
+            assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
+        }
+        assert_eq!(range.nth(result.len() as u32), None);
+    }
+
+    #[test]
+    fn test_multi_char_range_alongside_largest_case() {
+        let chars: Vec<char> = ('\0'..='\u{10ffff}').step_by(2).collect();
+        let ranges: Vec<BruteRange> = chars
+            .clone()
+            .into_iter()
+            .map(BruteRange::from_char)
+            .collect();
+        let range = MBruteRange::from_ranges(NonEmpty::from_vec(ranges).unwrap());
+        let result: Vec<char> = range.iter().collect();
+        assert_eq!(result, chars);
         for i in 0..result.len() {
             assert_eq!(range.nth(i as u32), Some(result[i]));
             assert_eq!(unsafe { range.nth_unchecked(i as u32) }, result[i])
